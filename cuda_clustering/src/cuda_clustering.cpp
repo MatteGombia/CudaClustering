@@ -57,7 +57,7 @@ void CudaClusteringNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_clo
     pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
 
     if(this->filterOnZ){
-
+      pcl::PointCloud<pcl::PointXYZ>::Ptr = this->testCUDAFiltering(pcl_cloud);
     }
 
     RCLCPP_INFO(this->get_logger(), "-------------- test CUDA lib -----------");
@@ -135,7 +135,6 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaClusteringNode::testCUDAFiltering(pcl::P
 
   cudaFilter filterTest(stream);
   FilterParam_t setP;
-  FilterType_t type;
 
   unsigned int countLeft = 0;
   std::cout << "\n------------checking CUDA PassThrough ---------------- "<< std::endl;
@@ -174,7 +173,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaClusteringNode::testCUDAFiltering(pcl::P
       cloudNew->points[i].y = output[i*4+1];
       cloudNew->points[i].z = output[i*4+2];
   }
-  pcl::io::savePCDFileASCII ("after-cuda-PassThrough.pcd", *cloudNew);
+  return cloudNew;
 }
 
 void CudaClusteringNode::testCUDA(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)

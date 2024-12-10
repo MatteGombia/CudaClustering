@@ -63,7 +63,7 @@ typedef struct {
     int dim;
     float upFilterLimits;
     float downFilterLimits;
-    bool limitsNegative;s
+    bool limitsNegative;
     //type VOXELGRID
     float voxelX;
     float voxelY;
@@ -115,7 +115,7 @@ class CudaClusteringNode : public rclcpp::Node
 
         void testPclGpu(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered);
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr testCUDAFiltering(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc)
+        pcl::PointCloud<pcl::PointXYZ>::Ptr testCUDAFiltering(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc);
     public:
         CudaClusteringNode();
 
