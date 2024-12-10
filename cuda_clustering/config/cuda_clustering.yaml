@@ -1,0 +1,17 @@
+#params from adaprive clustering 
+/cuda_clustering_node:
+  ros__parameters:
+    input_topic: "/patchworkpp/nonground"
+    minClusterSize : 3.0        # Minimum cluster size to filter out noise
+    maxClusterSize : 25.0        # Maximum size for large objects
+    voxelX: 0.5               #// Down-sampling resolution in X (meters)
+    voxelY: 0.5                  #// Down-sampling resolution in Y (meters)
+    voxelZ: 0.5                #// Down-sampling resolution in Z (meters)
+    countThreshold: 3.0         #  // Minimum points per voxel
+
+    clusterMaxX: 0.3
+    clusterMaxY: 0.3
+    clusterMaxZ: 0.4
+    maxHeight: 0.8          #of the lowest point
+
+    filterOnZ: true
