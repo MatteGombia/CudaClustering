@@ -9,18 +9,18 @@ CudaClusteringNode::CudaClusteringNode() : Node("cuda_clustering_node"){
 	  auto qos = rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data);
 
     this->cones_array_pub = this->create_publisher<visualization_msgs::msg::Marker>("/perception/newclusters", 100);
+    this->filtered_cp_pub  = this->create_publisher<sensor_msgs::msg::PointCloud2>("/filtered_cp", 100);
 
     /* Create subscriber */
     this->cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(this->input_topic, qos, 
         std::bind(&CudaClusteringNode::scanCallback, this, std::placeholders::_1));
-    
-    
 }
 
 void CudaClusteringNode::loadParameters()
 {
 
     declare_parameter("input_topic", ""); 
+    declare_parameter("frame_id", ""); 
     declare_parameter("minClusterSize", 0.0); 
     declare_parameter("maxClusterSize", 0.0); 
     declare_parameter("voxelX", 0.0); 
@@ -35,6 +35,7 @@ void CudaClusteringNode::loadParameters()
 
 
     get_parameter("input_topic", this->input_topic); 
+    get_parameter("frame_id", this->frame_id); 
     get_parameter("minClusterSize", this->minClusterSize); 
     get_parameter("maxClusterSize", this->maxClusterSize); 
     get_parameter("voxelX", this->voxelX); 
@@ -57,7 +58,7 @@ void CudaClusteringNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_clo
     pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
 
     if(this->filterOnZ){
-      pcl::PointCloud<pcl::PointXYZ>::Ptr = this->testCUDAFiltering(pcl_cloud);
+      pcl_cloud = this->testCUDAFiltering(pcl_cloud);
     }
 
     RCLCPP_INFO(this->get_logger(), "-------------- test CUDA lib -----------");
@@ -144,9 +145,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaClusteringNode::testCUDAFiltering(pcl::P
   FilterType_t type = PASSTHROUGH;
 
   setP.type = type;
-  setP.dim = 0;
-  setP.upFilterLimits = 0.5;
-  setP.downFilterLimits = -0.5;
+  setP.dim = 2;
+  setP.upFilterLimits = 1.0;
+  setP.downFilterLimits = 0.0;
   setP.limitsNegative = false;
   filterTest.set(setP);
 
@@ -173,6 +174,10 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaClusteringNode::testCUDAFiltering(pcl::P
       cloudNew->points[i].y = output[i*4+1];
       cloudNew->points[i].z = output[i*4+2];
   }
+  sensor_msgs::msg::PointCloud2 filteredPc;
+  pcl::toROSMsg(*cloudNew, filteredPc);
+  filteredPc.header.frame_id = this->frame_id;
+  this->filtered_cp_pub->publish(filteredPc);
   return cloudNew;
 }
 
@@ -180,7 +185,7 @@ void CudaClusteringNode::testCUDA(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
   visualization_msgs::msg::Marker cones;
   cones.id = 0;
-  cones.header.frame_id = "os_sensor";
+  cones.header.frame_id = this->frame_id;
   cones.header.stamp = this->now();
   cones.ns = "ListaConiRilevati";
   cones.type = visualization_msgs::msg::Marker::SPHERE_LIST;
@@ -300,10 +305,6 @@ void CudaClusteringNode::testCUDA(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
     else{
       RCLCPP_INFO(this->get_logger(), "DISCARDED the Cluster: %d data points.", cloud_cluster->size() );
     }
-    
-
-    
-    
   }
   cones_array_pub->publish(cones);
 

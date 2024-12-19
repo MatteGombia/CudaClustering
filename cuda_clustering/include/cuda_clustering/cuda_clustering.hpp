@@ -95,7 +95,7 @@ public:
 class CudaClusteringNode : public rclcpp::Node
 {
     private:
-        std::string input_topic;
+        std::string input_topic, frame_id;
         float minClusterSize,maxClusterSize, voxelX,voxelY,voxelZ, countThreshold, clusterMaxX, clusterMaxY, clusterMaxZ, maxHeight;
         bool filterOnZ;
 
@@ -106,6 +106,7 @@ class CudaClusteringNode : public rclcpp::Node
         rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
 
         rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr cones_array_pub;
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr filtered_cp_pub;
 
         void getInfo();
 
