@@ -1,16 +1,13 @@
 #include <iostream>
 
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/point_cloud2.hpp>
-
-#include <visualization_msgs/msg/marker_array.hpp>
-
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.hpp>
 
 #include <Eigen/Dense>
 #include "cuda_runtime.h"
+
+#include "cuda_clustering/CudaClustering/iclustering.hpp"
 
 /* GPU stuff */
 /*#include <pcl/gpu/octree/octree.hpp>
@@ -92,37 +89,12 @@ public:
 
 
 
-class CudaClusteringNode : public rclcpp::Node
+class CudaClustering : IClustering
 {
     private:
-        std::string input_topic, frame_id;
-        float minClusterSize,maxClusterSize, voxelX,voxelY,voxelZ, countThreshold, clusterMaxX, clusterMaxY, clusterMaxZ, maxHeight;
-        bool filterOnZ;
-
-        /* Publisher */
-        //rclcpp::Publisher<geometry_msgs::msg::PoseArray>::Ptr pose_array_pub_;
-
-        /* Subscriber */
-        rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
-
-        rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr cones_array_pub;
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr filtered_cp_pub;
-
         void getInfo();
 
-        void testCUDA(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-
-        void testPCL(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-
-        void testPclGpu(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered);
-
-        pcl::PointCloud<pcl::PointXYZ>::Ptr testCUDAFiltering(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc);
+        void exctractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
     public:
-        CudaClusteringNode();
-
-        /* Load parameters function */
-        void loadParameters();
-
-        /* PointCloud Callback */
-        void scanCallback(const sensor_msgs::msg::PointCloud2::Ptr sub_cloud);
+        CudaClustering();
 };

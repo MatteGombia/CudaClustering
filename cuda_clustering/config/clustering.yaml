@@ -1,5 +1,5 @@
 #params from adaprive clustering 
-/cuda_clustering_node:
+/clustering_node:
   ros__parameters:
     input_topic: "/patchworkpp/nonground"
     frame_id: "velodyne"

@@ -8,7 +8,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     config_node = os.path.join(
-        get_package_share_directory('cuda_clustering'),
+        get_package_share_directory('clustering'),
         'config',
         'cuda_clustering.yaml'
         )
