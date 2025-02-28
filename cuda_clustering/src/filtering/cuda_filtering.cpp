@@ -1,5 +1,14 @@
 #include "cuda_clustering/filtering/cuda_filtering.hpp"
+CudaFilter::CudaFilter()
+{
+  FilterType_t type = PASSTHROUGH;
 
+  setP.type = type;
+  setP.dim = 2;
+  setP.upFilterLimits = 1.0;
+  setP.downFilterLimits = 0.0;
+  setP.limitsNegative = false;
+}
 pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc)
 {
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -41,20 +50,12 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl
   cudaStreamSynchronize(stream);
 
   cudaFilter filterTest(stream);
-  FilterParam_t setP;
 
   unsigned int countLeft = 0;
   std::cout << "\n------------checking CUDA PassThrough ---------------- "<< std::endl;
 
   memset(outputData,0,sizeof(float)*4*nCount);
 
-  FilterType_t type = PASSTHROUGH;
-
-  setP.type = type;
-  setP.dim = 2;
-  setP.upFilterLimits = 1.0;
-  setP.downFilterLimits = 0.0;
-  setP.limitsNegative = false;
   filterTest.set(setP);
 
   cudaDeviceSynchronize();
@@ -80,9 +81,5 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl
       cloudNew->points[i].y = output[i*4+1];
       cloudNew->points[i].z = output[i*4+2];
   }
-//   sensor_msgs::msg::PointCloud2 filteredPc;
-//   pcl::toROSMsg(*cloudNew, filteredPc);
-//   filteredPc.header.frame_id = this->frame_id;
-//   this->filtered_cp_pub->publish(filteredPc);
   return cloudNew;
 }

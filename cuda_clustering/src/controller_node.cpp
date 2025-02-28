@@ -4,7 +4,7 @@ ControllerNode::ControllerNode() : Node("clustering_node"){
     this->loadParameters();
 
     this->filter = new CudaFilter();
-    this->clustering = new CudaClustering();
+    this->clustering = new CudaClustering(this->minClusterSize, this->maxClusterSize, this->voxelX, this->voxelY, this->voxelZ);
 
     this->clustering->getInfo();
 
@@ -54,6 +54,8 @@ void ControllerNode::loadParameters()
 
 void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
 {
+    visualization_msgs::msg::Marker cones;
+
     // Create a PCL PointCloud object
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -61,9 +63,15 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
     pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
 
     if(this->filterOnZ){
-      pcl_cloud = this->filter->filterPoints(pcl_cloud);
+        pcl_cloud = this->filter->filterPoints(pcl_cloud);
+        sensor_msgs::msg::PointCloud2 filteredPc;
+        pcl::toROSMsg(*pcl_cloud, filteredPc);
+        filteredPc.header.frame_id = this->frame_id;
+        this->filtered_cp_pub->publish(filteredPc);
     }
 
     RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
-    this->clustering->exctractClusters(pcl_cloud);
+    cones = this->clustering->exctractClusters(pcl_cloud);
+
+    cones_array_pub->publish(cones);
 }

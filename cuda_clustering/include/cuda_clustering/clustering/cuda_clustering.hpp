@@ -1,20 +1,12 @@
 #pragma once 
 #include <iostream>
 
-#include <pcl/segmentation/extract_clusters.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 #include <Eigen/Dense>
 #include "cuda_runtime.h"
 
 #include "cuda_clustering/clustering/iclustering.hpp"
-
-/* GPU stuff */
-/*#include <pcl/gpu/octree/octree.hpp>
-#include <pcl/gpu/containers/device_array.hpp>
-#include <pcl/gpu/segmentation/gpu_extract_clusters.h>
-#include <pcl/gpu/segmentation/impl/gpu_extract_clusters.hpp>*/
 
 typedef struct {
   unsigned int minClusterSize;
@@ -52,9 +44,11 @@ class cudaExtractCluster
 
 class CudaClustering : public IClustering
 {
-    public:
-        CudaClustering();
-        void getInfo();
+  private:
+    extractClusterParam_t ecp;
+  public:
+    CudaClustering(float minClusterSize, float maxClusterSize, float voxelX, float voxelY, float voxelZ);
+    void getInfo();
 
-        void extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    void extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 };

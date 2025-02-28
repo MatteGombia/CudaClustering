@@ -7,9 +7,12 @@
 #include "cuda_clustering/clustering/iclustering.hpp"
 #include "cuda_clustering/filtering/ifiltering.hpp"
 
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/transforms.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-
 #include <visualization_msgs/msg/marker_array.hpp>
 
 

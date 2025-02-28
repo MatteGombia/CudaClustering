@@ -62,6 +62,7 @@ target_link_libraries(cuda_clustering
 ament_target_dependencies(cuda_clustering
   rclcpp
   sensor_msgs
+  visualization_msgs
 )
 target_link_libraries(cuda_filtering
   libcudafilter

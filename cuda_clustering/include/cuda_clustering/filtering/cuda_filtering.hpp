@@ -22,6 +22,8 @@ typedef struct {
 
 class CudaFilter : public IFilter
 {
+    private:
+        FilterParam_t setP;
     public:
         CudaFilter();
         pcl::PointCloud<pcl::PointXYZ>::Ptr filterPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc);
