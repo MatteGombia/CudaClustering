@@ -1,9 +1,12 @@
-#include "cuda_clustering/cuda_clustering.hpp"
+#include "cuda_clustering/controller_node.hpp"
 
-CudaClusteringNode::CudaClusteringNode() : Node("cuda_clustering_node"){
+ControllerNode::ControllerNode() : Node("clustering_node"){
     this->loadParameters();
 
-    this->getInfo();
+    this->filter = new CudaFilter();
+    this->clustering = new CudaClustering();
+
+    this->clustering->getInfo();
 
     /* Define QoS for Best Effort messages transport */
 	  auto qos = rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data);
@@ -13,10 +16,10 @@ CudaClusteringNode::CudaClusteringNode() : Node("cuda_clustering_node"){
 
     /* Create subscriber */
     this->cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(this->input_topic, qos, 
-        std::bind(&CudaClusteringNode::scanCallback, this, std::placeholders::_1));
+        std::bind(&ControllerNode::scanCallback, this, std::placeholders::_1));
 }
 
-void CudaClusteringNode::loadParameters()
+void ControllerNode::loadParameters()
 {
 
     declare_parameter("input_topic", ""); 
@@ -49,7 +52,7 @@ void CudaClusteringNode::loadParameters()
     get_parameter("filterOnZ", this->filterOnZ); 
 }
 
-void CudaClusteringNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
+void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
 {
     // Create a PCL PointCloud object
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -58,9 +61,9 @@ void CudaClusteringNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_clo
     pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
 
     if(this->filterOnZ){
-      pcl_cloud = this->testCUDAFiltering(pcl_cloud);
+      pcl_cloud = this->filter->filterPoints(pcl_cloud);
     }
 
-    RCLCPP_INFO(this->get_logger(), "-------------- test CUDA lib -----------");
-    testCUDA(pcl_cloud);
+    RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
+    this->clustering->exctractClusters(pcl_cloud);
 }

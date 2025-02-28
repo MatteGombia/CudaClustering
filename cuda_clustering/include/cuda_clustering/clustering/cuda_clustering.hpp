@@ -1,3 +1,4 @@
+#pragma once 
 #include <iostream>
 
 #include <pcl/segmentation/extract_clusters.h>
@@ -7,7 +8,7 @@
 #include <Eigen/Dense>
 #include "cuda_runtime.h"
 
-#include "cuda_clustering/CudaClustering/iclustering.hpp"
+#include "cuda_clustering/clustering/iclustering.hpp"
 
 /* GPU stuff */
 /*#include <pcl/gpu/octree/octree.hpp>
@@ -48,53 +49,12 @@ class cudaExtractCluster
     }                                                             \
 }
 
-typedef enum {
-    PASSTHROUGH = 0,
-    VOXELGRID = 1,
-} FilterType_t;
 
-typedef struct {
-    FilterType_t type;
-    //0=x,1=y,2=z
-    //type PASSTHROUGH
-    int dim;
-    float upFilterLimits;
-    float downFilterLimits;
-    bool limitsNegative;
-    //type VOXELGRID
-    float voxelX;
-    float voxelY;
-    float voxelZ;
-
-} FilterParam_t;
-
-class cudaFilter
+class CudaClustering : public IClustering
 {
-public:
-    cudaFilter(cudaStream_t stream = 0);
-    ~cudaFilter(void);
-    /*
-    Input:
-        source: data pointer for points cloud
-        nCount: count of points in cloud_in
-    Output:
-        output: data pointer which has points filtered by CUDA
-        countLeft: count of points in output
-    */
-    int set(FilterParam_t param);
-    int filter(void *output, unsigned int *countLeft, void *source, unsigned int nCount);
-
-    void *m_handle = NULL;
-};
-
-
-
-class CudaClustering : IClustering
-{
-    private:
-        void getInfo();
-
-        void exctractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
     public:
         CudaClustering();
+        void getInfo();
+
+        void extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 };

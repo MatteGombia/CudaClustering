@@ -1,5 +1,11 @@
+#pragma once 
 #include <iostream>
 #include <string.h>
+
+#include "cuda_clustering/clustering/cuda_clustering.hpp"
+#include "cuda_clustering/filtering/cuda_filtering.hpp"
+#include "cuda_clustering/clustering/iclustering.hpp"
+#include "cuda_clustering/filtering/ifiltering.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
@@ -10,12 +16,13 @@
 class ControllerNode : public rclcpp::Node
 {
     private:
+
         std::string input_topic, frame_id;
         float minClusterSize, maxClusterSize, voxelX, voxelY, voxelZ, countThreshold, clusterMaxX, clusterMaxY, clusterMaxZ, maxHeight;
         bool filterOnZ;
 
-        IFilter filter;
-        IClustering clustering;
+        IFilter *filter;
+        IClustering *clustering;
 
         /* Publisher */
         //rclcpp::Publisher<geometry_msgs::msg::PoseArray>::Ptr pose_array_pub_;
@@ -32,5 +39,5 @@ class ControllerNode : public rclcpp::Node
         /* PointCloud Callback */
         void scanCallback(const sensor_msgs::msg::PointCloud2::Ptr sub_cloud);
     public:
-        CudaClusteringNode();
+        ControllerNode();
 };

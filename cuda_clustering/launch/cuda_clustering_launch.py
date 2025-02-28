@@ -10,13 +10,13 @@ def generate_launch_description():
     config_node = os.path.join(
         get_package_share_directory('clustering'),
         'config',
-        'cuda_clustering.yaml'
+        'clustering.yaml'
         )
 
     node=Node(
-            package='cuda_clustering',
-            name='cuda_clustering_node',
-            executable='cuda_clustering_node',
+            package='clustering',
+            name='clustering_node',
+            executable='clustering_node',
             output='screen',
             parameters=[config_node]
         )

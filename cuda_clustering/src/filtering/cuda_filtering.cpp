@@ -1,6 +1,6 @@
 #include "cuda_clustering/filtering/cuda_filtering.hpp"
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::testCUDAFiltering(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc)
+pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc)
 {
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();

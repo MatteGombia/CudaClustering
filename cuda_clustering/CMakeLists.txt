@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(cuda_clustering)
+project(clustering)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -34,9 +34,15 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 add_definitions(-std=c++17 -g -lboost_thread-mt)
 
-add_library(${PROJECT_NAME} src/${PROJECT_NAME}.cpp)
+add_library(${PROJECT_NAME} src/controller_node.cpp)
 
-add_executable(cuda_clustering_node src/cuda_clustering_node.cpp)
+add_executable(clustering_node
+  src/controller_node.cpp
+  src/main.cpp
+  src/clustering/cuda_clustering.cpp
+  src/filtering/cuda_filtering.cpp
+)
+target_include_directories(clustering_node PUBLIC include)
 
 add_library(libcudacluster SHARED IMPORTED)
 set_target_properties( libcudacluster PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libcudacluster.so )
@@ -47,11 +53,29 @@ set_target_properties( libcudafilter PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE
 link_directories(libcudacluster)
 link_directories(libcudafilter)
 
+add_library(cuda_clustering src/clustering/cuda_clustering.cpp)
+add_library(cuda_filtering src/filtering/cuda_filtering.cpp)
+
+target_link_libraries(cuda_clustering
+  libcudacluster
+)
+ament_target_dependencies(cuda_clustering
+  rclcpp
+  sensor_msgs
+)
+target_link_libraries(cuda_filtering
+  libcudafilter
+)
+ament_target_dependencies(cuda_filtering
+  rclcpp
+  sensor_msgs
+)
+
 target_link_libraries(${PROJECT_NAME}
   ${PCL_LIBRARIES}
   ${CUDA_LIBRARIES}
-  libcudacluster
-  libcudafilter
+  cuda_clustering
+  cuda_filtering
 )
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
@@ -62,16 +86,18 @@ ament_target_dependencies(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}_node 
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
+  cuda_clustering
+  cuda_filtering
   libcudacluster
   libcudafilter
 )
 
-target_include_directories(cuda_clustering PUBLIC
+target_include_directories(clustering PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_features(cuda_clustering PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(clustering PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-install(TARGETS cuda_clustering_node
+install(TARGETS clustering_node
   DESTINATION lib/${PROJECT_NAME})
 
 

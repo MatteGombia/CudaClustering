@@ -1,10 +1,10 @@
-#include "cuda_clustering/CudaClustering/cuda_clustering.hpp"
+#include "cuda_clustering/clustering/cuda_clustering.hpp"
 
 void CudaClustering::getInfo(void)
 {
     cudaDeviceProp prop;
 
-    int count = 0;
+    /*int count = 0;
     cudaGetDeviceCount(&count);
     RCLCPP_INFO(this->get_logger(),"\nGPU has cuda devices: %d\n", count);
     for (int i = 0; i < count; ++i) {
@@ -20,7 +20,7 @@ void CudaClustering::getInfo(void)
         RCLCPP_INFO(this->get_logger(),"  block dim: (%d,%d,%d)\n", prop.maxThreadsDim[0], prop.maxThreadsDim[1], prop.maxThreadsDim[2]);
         RCLCPP_INFO(this->get_logger(),"  grid dim: (%d,%d,%d)\n", prop.maxGridSize[0], prop.maxGridSize[1], prop.maxGridSize[2]);
     }
-    RCLCPP_INFO(this->get_logger(),"\n");
+    RCLCPP_INFO(this->get_logger(),"\n");*/
 }
 
 void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
