@@ -10,6 +10,4 @@ class IFilter
         
     public:
         virtual pcl::PointCloud<pcl::PointXYZ>::Ptr filterPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc) = 0;
-        IFilter();
-        
 };

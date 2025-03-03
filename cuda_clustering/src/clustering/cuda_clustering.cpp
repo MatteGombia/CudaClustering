@@ -1,6 +1,6 @@
 #include "cuda_clustering/clustering/cuda_clustering.hpp"
 
-CudaClustering::CudaClustering(float minClusterSize, float maxClusterSize, float voxelX, float voxelY, float voxelZ){
+CudaClustering::CudaClustering(unsigned int minClusterSize, unsigned int maxClusterSize, float voxelX, float voxelY, float voxelZ, unsigned int countThreshold){
   this->ecp.minClusterSize = minClusterSize;           // Minimum cluster size to filter out noise
   this->ecp.maxClusterSize = maxClusterSize;        // Maximum size for large objects
   this->ecp.voxelX = voxelX;                  // Down-sampling resolution in X (meters)
@@ -20,7 +20,7 @@ void CudaClustering::getInfo(void)
       cudaGetDeviceProperties(&prop, i);
       RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"----device id: %d info----\n", i);
       RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"  GPU : %s \n", prop.name);
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"  Capbility: %d.%d\n", prop.major, prop.minor);
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"  Capability: %d.%d\n", prop.major, prop.minor);
       RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"  Global memory: %luMB\n", prop.totalGlobalMem >> 20);
       RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"  Const memory: %luKB\n", prop.totalConstMem  >> 10);
       RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"  SM in a block: %luKB\n", prop.sharedMemPerBlock >> 10);
@@ -32,9 +32,8 @@ void CudaClustering::getInfo(void)
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"\n");
 }
 
-visualization_msgs::msg::Marker CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::shared_ptr<visualization_msgs::msg::Marker> cones)
 {
-  visualization_msgs::msg::Marker cones;
   cudaStream_t stream = NULL;
   cudaStreamCreate (&stream);
 
@@ -76,7 +75,6 @@ visualization_msgs::msg::Marker CudaClustering::extractClusters(pcl::PointCloud<
     cloud_cluster->height = 1;
     cloud_cluster->points.resize (cloud_cluster->width * cloud_cluster->height);
     cloud_cluster->is_dense = true;
-
     unsigned int outoff = 0;
     for (int w = 1; w < i; w++)
     {
@@ -114,7 +112,8 @@ visualization_msgs::msg::Marker CudaClustering::extractClusters(pcl::PointCloud<
       pnt.x = (maxX + minX) / 2;
       pnt.y = (maxY + minY) / 2;
       pnt.z = (maxZ + minZ) / 2;
-      cones.points.push_back(pnt);
+      cones->points.push_back(pnt);
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "Marker: %d data points.", cones->points.size());
       RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "PointCloud representing the Cluster: %d data points.", cloud_cluster->size() );
     }
     else{
@@ -125,7 +124,5 @@ visualization_msgs::msg::Marker CudaClustering::extractClusters(pcl::PointCloud<
   cudaFree(inputEC);
   cudaFree(outputEC);
   cudaFree(indexEC);
-
-  return cones;
   /*end*/
 }

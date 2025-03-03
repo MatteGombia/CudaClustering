@@ -4,7 +4,7 @@ ControllerNode::ControllerNode() : Node("clustering_node"){
     this->loadParameters();
 
     this->filter = new CudaFilter();
-    this->clustering = new CudaClustering(this->minClusterSize, this->maxClusterSize, this->voxelX, this->voxelY, this->voxelZ);
+    this->clustering = new CudaClustering(this->minClusterSize, this->maxClusterSize, this->voxelX, this->voxelY, this->voxelZ, this->countThreshold);
 
     this->clustering->getInfo();
 
@@ -24,12 +24,12 @@ void ControllerNode::loadParameters()
 
     declare_parameter("input_topic", ""); 
     declare_parameter("frame_id", ""); 
-    declare_parameter("minClusterSize", 0.0); 
-    declare_parameter("maxClusterSize", 0.0); 
+    declare_parameter("minClusterSize", 0); 
+    declare_parameter("maxClusterSize", 0); 
     declare_parameter("voxelX", 0.0); 
     declare_parameter("voxelY", 0.0); 
     declare_parameter("voxelZ", 0.0); 
-    declare_parameter("countThreshold", 0.0); 
+    declare_parameter("countThreshold", 0); 
     declare_parameter("clusterMaxX", 0.0); 
     declare_parameter("clusterMaxY", 0.0); 
     declare_parameter("clusterMaxZ", 0.0); 
@@ -54,7 +54,7 @@ void ControllerNode::loadParameters()
 
 void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
 {
-    visualization_msgs::msg::Marker cones;
+    std::shared_ptr<visualization_msgs::msg::Marker> cones(new visualization_msgs::msg::Marker());
 
     // Create a PCL PointCloud object
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -71,7 +71,26 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
     }
 
     RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
-    cones = this->clustering->exctractClusters(pcl_cloud);
+    this->clustering->extractClusters(pcl_cloud, cones);
+    RCLCPP_INFO(this->get_logger(), "Marker: %d data points.", cones->points.size());
 
-    cones_array_pub->publish(cones);
+    cones->header.frame_id = this->frame_id;
+    cones->header.stamp = this->now();
+    cones->ns = "ListaConiRilevati";
+    cones->type = visualization_msgs::msg::Marker::SPHERE_LIST;
+    cones->action = visualization_msgs::msg::Marker::ADD;
+    cones->scale.x = 0.3; //0.5
+    cones->scale.y = 0.2;
+    cones->scale.z = 0.2;
+    cones->color.a = 1.0; //1.0
+    cones->color.r = 1.0;
+    cones->color.g = 0.0;
+    cones->color.b = 1.0;
+    //Initialize with identity quaternion = no rotation
+    cones->pose.orientation.x = 0.0;
+    cones->pose.orientation.y = 0.0;
+    cones->pose.orientation.z = 0.0;
+    cones->pose.orientation.w = 1.0;
+
+    cones_array_pub->publish(*cones);
 }

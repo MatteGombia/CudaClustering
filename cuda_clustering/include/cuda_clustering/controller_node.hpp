@@ -21,7 +21,8 @@ class ControllerNode : public rclcpp::Node
     private:
 
         std::string input_topic, frame_id;
-        float minClusterSize, maxClusterSize, voxelX, voxelY, voxelZ, countThreshold, clusterMaxX, clusterMaxY, clusterMaxZ, maxHeight;
+        float voxelX, voxelY, voxelZ, clusterMaxX, clusterMaxY, clusterMaxZ, maxHeight;
+        unsigned int countThreshold, minClusterSize, maxClusterSize;
         bool filterOnZ;
 
         IFilter *filter;

@@ -3,11 +3,11 @@ CudaFilter::CudaFilter()
 {
   FilterType_t type = PASSTHROUGH;
 
-  setP.type = type;
-  setP.dim = 2;
-  setP.upFilterLimits = 1.0;
-  setP.downFilterLimits = 0.0;
-  setP.limitsNegative = false;
+  this->setP.type = type;
+  this->setP.dim = 2;
+  this->setP.upFilterLimits = 1.0;
+  this->setP.downFilterLimits = 0.0;
+  this->setP.limitsNegative = false;
 }
 pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc)
 {
@@ -56,7 +56,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl
 
   memset(outputData,0,sizeof(float)*4*nCount);
 
-  filterTest.set(setP);
+  filterTest.set(this->setP);
 
   cudaDeviceSynchronize();
   t1 = std::chrono::steady_clock::now();
@@ -72,7 +72,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudNew(new pcl::PointCloud<pcl::PointXYZ>);
   cloudNew->width = countLeft;
   cloudNew->height = 1;
-  cloudNew->points.resize (cloudNew->width * cloudNew->height);
+  cloudNew->points.resize(cloudNew->width * cloudNew->height);
 
   int check = 0;
   for (std::size_t i = 0; i < cloudNew->size(); ++i)

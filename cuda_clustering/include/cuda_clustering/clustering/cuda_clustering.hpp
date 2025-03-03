@@ -45,10 +45,11 @@ class cudaExtractCluster
 class CudaClustering : public IClustering
 {
   private:
+    float clusterMaxX = 0.5, clusterMaxY = 0.5, clusterMaxZ = 0.5, maxHeight = 1.0 ;
     extractClusterParam_t ecp;
   public:
-    CudaClustering(float minClusterSize, float maxClusterSize, float voxelX, float voxelY, float voxelZ);
+    CudaClustering(unsigned int minClusterSize, unsigned int maxClusterSize, float voxelX, float voxelY, float voxelZ, unsigned int countThreshold);
     void getInfo();
 
-    void extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    void extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::shared_ptr<visualization_msgs::msg::Marker> cones);
 };
