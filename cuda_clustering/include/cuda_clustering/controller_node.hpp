@@ -1,5 +1,4 @@
 #pragma once 
-#include <iostream>
 #include <string.h>
 
 #include "cuda_clustering/clustering/cuda_clustering.hpp"
@@ -7,9 +6,7 @@
 #include "cuda_clustering/clustering/iclustering.hpp"
 #include "cuda_clustering/filtering/ifiltering.hpp"
 
-#include <pcl/segmentation/extract_clusters.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
@@ -29,7 +26,7 @@ class ControllerNode : public rclcpp::Node
         IClustering *clustering;
 
         /* Publisher */
-        //rclcpp::Publisher<geometry_msgs::msg::PoseArray>::Ptr pose_array_pub_;
+        //rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
         /* Subscriber */
         rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
@@ -41,7 +38,7 @@ class ControllerNode : public rclcpp::Node
         void loadParameters();
 
         /* PointCloud Callback */
-        void scanCallback(const sensor_msgs::msg::PointCloud2::Ptr sub_cloud);
+        void scanCallback(const sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud);
     public:
         ControllerNode();
 };

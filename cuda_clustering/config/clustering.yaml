@@ -3,7 +3,7 @@
   ros__parameters:
     input_topic: "/patchworkpp/nonground"
     frame_id: "hesai_lidar"
-    minClusterSize : 10        # Minimum cluster size to filter out noise
+    minClusterSize : 5        # Minimum cluster size to filter out noise
     maxClusterSize : 150        # Maximum size for large objects
     voxelX: 0.5               #// Down-sampling resolution in X (meters)
     voxelY: 0.5                  #// Down-sampling resolution in Y (meters)

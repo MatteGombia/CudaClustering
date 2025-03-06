@@ -25,7 +25,7 @@ include_directories(${Eigen_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(/opt/ros/humble/include/pcl_ros)
 include_directories(/opt/ros/humble/include/pcl_conversions)
-include_directories(/opt/ros/humble/include/message_filters) #
+include_directories(/opt/ros/humble/include/message_filters)
 include_directories(/opt/ros/humble/include/pcl_msgs)   
 include_directories(/opt/ros/humble/include/tf2)   
 include_directories(/opt/ros/humble/include/tf2_ros)   
@@ -61,7 +61,6 @@ target_link_libraries(cuda_clustering
 )
 ament_target_dependencies(cuda_clustering
   rclcpp
-  sensor_msgs
   visualization_msgs
 )
 target_link_libraries(cuda_filtering
@@ -85,12 +84,7 @@ ament_target_dependencies(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}_node 
-  ${catkin_LIBRARIES}
   ${PROJECT_NAME}
-  cuda_clustering
-  cuda_filtering
-  libcudacluster
-  libcudafilter
 )
 
 target_include_directories(clustering PUBLIC

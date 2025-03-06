@@ -1,5 +1,4 @@
 #pragma once 
-#include <iostream>
 
 #include <visualization_msgs/msg/marker_array.hpp>
 

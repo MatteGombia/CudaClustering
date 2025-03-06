@@ -67,7 +67,7 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
   std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA extract by Time: %f ms.", time_span.count());
 
-  for (int i = 1; i <= indexEC[0]; i++)
+  for (size_t i = 1; i <= indexEC[0]; i++)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -76,7 +76,7 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
     cloud_cluster->points.resize (cloud_cluster->width * cloud_cluster->height);
     cloud_cluster->is_dense = true;
     unsigned int outoff = 0;
-    for (int w = 1; w < i; w++)
+    for (size_t w = 1; w < i; w++)
     {
       if (i>1) {
         outoff += indexEC[w];
@@ -84,7 +84,7 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
     }
 
     double maxX=-1000, maxY=-1000, maxZ=-1000, minX=1000, minY=1000, minZ=1000;
-    for (std::size_t k = 0; k < indexEC[i]; ++k)
+    for(size_t k = 0; k < indexEC[i]; ++k)
     {
       cloud_cluster->points[k].x = outputEC[(outoff+k)*4+0];
       cloud_cluster->points[k].y = outputEC[(outoff+k)*4+1];
@@ -113,11 +113,11 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
       pnt.y = (maxY + minY) / 2;
       pnt.z = (maxZ + minZ) / 2;
       cones->points.push_back(pnt);
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "Marker: %d data points.", cones->points.size());
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "PointCloud representing the Cluster: %d data points.", cloud_cluster->size() );
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "Marker: %ld data points.", cones->points.size());
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "PointCloud representing the Cluster: %ld data points.", cloud_cluster->size() );
     }
     else{
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "DISCARDED the Cluster: %d data points.", cloud_cluster->size() );
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "DISCARDED the Cluster: %ld data points.", cloud_cluster->size() );
     }
   }
 

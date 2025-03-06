@@ -52,7 +52,7 @@ void ControllerNode::loadParameters()
     get_parameter("filterOnZ", this->filterOnZ); 
 }
 
-void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
+void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
 {
     std::shared_ptr<visualization_msgs::msg::Marker> cones(new visualization_msgs::msg::Marker());
 
@@ -72,7 +72,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::Ptr sub_cloud)
 
     RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
     this->clustering->extractClusters(pcl_cloud, cones);
-    RCLCPP_INFO(this->get_logger(), "Marker: %d data points.", cones->points.size());
+    RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
 
     cones->header.frame_id = this->frame_id;
     cones->header.stamp = this->now();

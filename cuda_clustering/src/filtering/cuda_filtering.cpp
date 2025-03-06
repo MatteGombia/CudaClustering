@@ -74,7 +74,6 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr CudaFilter::filterPoints(pcl::PointCloud<pcl
   cloudNew->height = 1;
   cloudNew->points.resize(cloudNew->width * cloudNew->height);
 
-  int check = 0;
   for (std::size_t i = 0; i < cloudNew->size(); ++i)
   {
       cloudNew->points[i].x = output[i*4+0];
