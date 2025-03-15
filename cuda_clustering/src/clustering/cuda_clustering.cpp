@@ -37,7 +37,8 @@ void CudaClustering::getInfo(void)
 
 void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::shared_ptr<visualization_msgs::msg::Marker> cones)
 {
-  cudaStream_t stream = NULL;
+  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+  stream = NULL;
   cudaStreamCreate (&stream);
 
   float *inputEC = NULL;
@@ -62,13 +63,10 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
   cudaExtractCluster cudaec(stream);
   cudaec.set(this->ecp);
 
-  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+  
 
   cudaec.extract(inputEC, sizeEC, outputEC, indexEC);
   cudaStreamSynchronize(stream);
-  std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-  std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
-  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA extract by Time: %f ms.", time_span.count());
 
   for (size_t i = 1; i <= indexEC[0]; i++)
   {
@@ -82,12 +80,11 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
     std::optional<geometry_msgs::msg::Point> pnt_opt = filter->analiseCluster(&outputEC[outoff*4], indexEC[i]);
     if(pnt_opt.has_value()){
       cones->points.push_back(pnt_opt.value());
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "PointCloud representing the Cluster: %d data points.", indexEC[i]);
-    }
-    else{
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "DISCARDED the Cluster: %d data points.", indexEC[i]);
     }
   }
+  std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
+  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA extract by Time: %f ms.", time_span.count());
 
   cudaFree(inputEC);
   cudaFree(outputEC);

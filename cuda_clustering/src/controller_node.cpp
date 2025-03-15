@@ -17,6 +17,23 @@ ControllerNode::ControllerNode() : Node("clustering_node"){
     /* Create subscriber */
     this->cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(this->input_topic, qos, 
         std::bind(&ControllerNode::scanCallback, this, std::placeholders::_1));
+
+    /* Cones topic init */
+    cones->header.frame_id = this->frame_id;
+    cones->ns = "ListaConiRilevati";
+    cones->type = visualization_msgs::msg::Marker::SPHERE_LIST;
+    cones->action = visualization_msgs::msg::Marker::ADD;
+    cones->scale.x = 0.3; //0.5
+    cones->scale.y = 0.2;
+    cones->scale.z = 0.2;
+    cones->color.a = 1.0; //1.0
+    cones->color.r = 1.0;
+    cones->color.g = 0.0;
+    cones->color.b = 1.0;
+    cones->pose.orientation.x = 0.0;
+    cones->pose.orientation.y = 0.0;
+    cones->pose.orientation.z = 0.0;
+    cones->pose.orientation.w = 1.0;
 }
 
 void ControllerNode::loadParameters()
@@ -54,8 +71,7 @@ void ControllerNode::loadParameters()
 
 void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
 {
-    std::shared_ptr<visualization_msgs::msg::Marker> cones(new visualization_msgs::msg::Marker());
-
+    cones->points = {};
     // Create a PCL PointCloud object
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -70,27 +86,10 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
         this->filtered_cp_pub->publish(filteredPc);
     }
 
-    RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
+    //RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
     this->clustering->extractClusters(pcl_cloud, cones);
-    RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
+    //RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
 
-    cones->header.frame_id = this->frame_id;
     cones->header.stamp = this->now();
-    cones->ns = "ListaConiRilevati";
-    cones->type = visualization_msgs::msg::Marker::SPHERE_LIST;
-    cones->action = visualization_msgs::msg::Marker::ADD;
-    cones->scale.x = 0.3; //0.5
-    cones->scale.y = 0.2;
-    cones->scale.z = 0.2;
-    cones->color.a = 1.0; //1.0
-    cones->color.r = 1.0;
-    cones->color.g = 0.0;
-    cones->color.b = 1.0;
-    //Initialize with identity quaternion = no rotation
-    cones->pose.orientation.x = 0.0;
-    cones->pose.orientation.y = 0.0;
-    cones->pose.orientation.z = 0.0;
-    cones->pose.orientation.w = 1.0;
-
     cones_array_pub->publish(*cones);
 }

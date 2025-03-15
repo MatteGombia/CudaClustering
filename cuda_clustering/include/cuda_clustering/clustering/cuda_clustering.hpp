@@ -46,6 +46,7 @@ class CudaClustering : public IClustering
   private:
     float clusterMaxX = 0.5, clusterMaxY = 0.5, clusterMaxZ = 0.5, maxHeight = 1.0 ;
     extractClusterParam_t ecp;
+    cudaStream_t stream;
   public:
     CudaClustering(unsigned int minClusterSize, unsigned int maxClusterSize, float voxelX, float voxelY, float voxelZ, unsigned int countThreshold);
     void getInfo();
