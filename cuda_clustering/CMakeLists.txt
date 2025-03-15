@@ -12,6 +12,7 @@ find_package(rclcpp REQUIRED)
 find_package(PCL REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(CUDA  REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # uncomment the following section in order to fill in
@@ -54,10 +55,16 @@ link_directories(libcudacluster)
 link_directories(libcudafilter)
 
 add_library(cuda_clustering src/clustering/cuda_clustering.cpp)
+add_library(cluster_filtering src/clustering/cluster_filtering/dimension_filter.cpp)
 add_library(cuda_filtering src/filtering/cuda_filtering.cpp)
+
+ament_target_dependencies(cluster_filtering
+  geometry_msgs
+)
 
 target_link_libraries(cuda_clustering
   libcudacluster
+  cluster_filtering
 )
 ament_target_dependencies(cuda_clustering
   rclcpp

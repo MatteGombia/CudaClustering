@@ -1,4 +1,5 @@
 #include "cuda_clustering/clustering/cuda_clustering.hpp"
+#include "cuda_clustering/clustering/cluster_filtering/dimension_filter.hpp"
 
 CudaClustering::CudaClustering(unsigned int minClusterSize, unsigned int maxClusterSize, float voxelX, float voxelY, float voxelZ, unsigned int countThreshold){
   this->ecp.minClusterSize = minClusterSize;           // Minimum cluster size to filter out noise
@@ -7,6 +8,8 @@ CudaClustering::CudaClustering(unsigned int minClusterSize, unsigned int maxClus
   this->ecp.voxelY = voxelY;                  // Down-sampling resolution in Y (meters)
   this->ecp.voxelZ = voxelZ;                 // Down-sampling resolution in Z (meters)
   this->ecp.countThreshold = countThreshold;           // Minimum points per voxel
+
+  filter = new DimensionFilter();
 }
 
 void CudaClustering::getInfo(void)
@@ -69,12 +72,6 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 
   for (size_t i = 1; i <= indexEC[0]; i++)
   {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-
-    cloud_cluster->width  = indexEC[i];
-    cloud_cluster->height = 1;
-    cloud_cluster->points.resize (cloud_cluster->width * cloud_cluster->height);
-    cloud_cluster->is_dense = true;
     unsigned int outoff = 0;
     for (size_t w = 1; w < i; w++)
     {
@@ -82,42 +79,13 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
         outoff += indexEC[w];
       }
     }
-
-    double maxX=-1000, maxY=-1000, maxZ=-1000, minX=1000, minY=1000, minZ=1000;
-    for(size_t k = 0; k < indexEC[i]; ++k)
-    {
-      cloud_cluster->points[k].x = outputEC[(outoff+k)*4+0];
-      cloud_cluster->points[k].y = outputEC[(outoff+k)*4+1];
-      cloud_cluster->points[k].z = outputEC[(outoff+k)*4+2];
-
-      if(cloud_cluster->points[k].x > maxX)
-        maxX = cloud_cluster->points[k].x;
-      if(cloud_cluster->points[k].y > maxY)
-        maxY = cloud_cluster->points[k].y;
-      if(cloud_cluster->points[k].z > maxZ)
-        maxZ = cloud_cluster->points[k].z;
-      if(cloud_cluster->points[k].x < minX)
-        minX = cloud_cluster->points[k].x;
-      if(cloud_cluster->points[k].y < minY)
-        minY = cloud_cluster->points[k].y;
-      if(cloud_cluster->points[k].z < minZ)
-        minZ = cloud_cluster->points[k].z;
-    }
-    
-    if(minZ < this->maxHeight &&
-        (maxX - minX) < this->clusterMaxX &&
-        (maxY - minY) < this->clusterMaxY &&
-        (maxZ - minZ) < this->clusterMaxZ){
-      geometry_msgs::msg::Point pnt;
-      pnt.x = (maxX + minX) / 2;
-      pnt.y = (maxY + minY) / 2;
-      pnt.z = (maxZ + minZ) / 2;
-      cones->points.push_back(pnt);
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "Marker: %ld data points.", cones->points.size());
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "PointCloud representing the Cluster: %ld data points.", cloud_cluster->size() );
+    std::optional<geometry_msgs::msg::Point> pnt_opt = filter->analiseCluster(&outputEC[outoff*4], indexEC[i]);
+    if(pnt_opt.has_value()){
+      cones->points.push_back(pnt_opt.value());
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "PointCloud representing the Cluster: %d data points.", indexEC[i]);
     }
     else{
-      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "DISCARDED the Cluster: %ld data points.", cloud_cluster->size() );
+      RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "DISCARDED the Cluster: %d data points.", indexEC[i]);
     }
   }
 
