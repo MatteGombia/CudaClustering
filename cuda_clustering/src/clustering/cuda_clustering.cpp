@@ -35,33 +35,51 @@ void CudaClustering::getInfo(void)
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"\n");
 }
 
-void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::shared_ptr<visualization_msgs::msg::Marker> cones)
-{
-  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+void CudaClustering::reallocateMemory(unsigned int sizeEC){
   stream = NULL;
   cudaStreamCreate (&stream);
 
-  float *inputEC = NULL;
-  unsigned int sizeEC = cloud->size();
+  cudaFree(inputEC);
   cudaMallocManaged(&inputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
   cudaStreamAttachMemAsync (stream, inputEC);
-  cudaMemcpyAsync(inputEC, cloud->points.data(), sizeof(float) * 4 * sizeEC, cudaMemcpyHostToDevice, stream);
-  cudaStreamSynchronize(stream);
 
-  float *outputEC = NULL;
+  //free(outputEC);
+  cudaFree(outputEC);
   cudaMallocManaged(&outputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
   cudaStreamAttachMemAsync (stream, outputEC);
-  cudaMemcpyAsync(outputEC, cloud->points.data(), sizeof(float) * 4 * sizeEC, cudaMemcpyHostToDevice, stream);
-  cudaStreamSynchronize(stream);
 
-  unsigned int *indexEC = NULL;
+  //free(indexEC);
+  cudaFree(indexEC);
   cudaMallocManaged(&indexEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
   cudaStreamAttachMemAsync (stream, indexEC);
+
+}
+
+void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::shared_ptr<visualization_msgs::msg::Marker> cones)
+{
+  std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+  unsigned int sizeEC = cloud->size();
+
+  if(memoryAllocated < sizeEC){
+    reallocateMemory(sizeEC);
+    memoryAllocated = sizeEC;
+  }
+
+  cudaMemcpyAsync(inputEC, cloud->points.data(), sizeof(float) * 4 * sizeEC, cudaMemcpyHostToDevice, stream);
+  //cudaStreamSynchronize(stream);
+
+  cudaMemcpyAsync(outputEC, cloud->points.data(), sizeof(float) * 4 * sizeEC, cudaMemcpyHostToDevice, stream);
+  //cudaStreamSynchronize(stream);
+  
   cudaMemsetAsync(indexEC, 0, sizeof(float) * 4 * sizeEC, stream);
   cudaStreamSynchronize(stream);
 
   cudaExtractCluster cudaec(stream);
   cudaec.set(this->ecp);
+
+  std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+  std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
+  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Memory Time: %f ms.", time_span.count());
 
   
 
@@ -82,12 +100,15 @@ void CudaClustering::extractClusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
       cones->points.push_back(pnt_opt.value());
     }
   }
-  std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-  std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
+  std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
+  time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t3 - t2);
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA extract by Time: %f ms.", time_span.count());
-
+  time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t3 - t1);
+  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Total Time: %f ms.", time_span.count());
+  /*end*/
+}
+CudaClustering::~CudaClustering(){
   cudaFree(inputEC);
   cudaFree(outputEC);
   cudaFree(indexEC);
-  /*end*/
 }
