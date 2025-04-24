@@ -12,7 +12,8 @@ ControllerNode::ControllerNode() : Node("clustering_node"){
 	  auto qos = rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data);
 
     this->cones_array_pub = this->create_publisher<visualization_msgs::msg::Marker>("/perception/newclusters", 100);
-    this->filtered_cp_pub  = this->create_publisher<sensor_msgs::msg::PointCloud2>("/filtered_cp", 100);
+    this->filtered_cp_pub  = this->create_publisher<sensor_msgs::msg::PointCloud2>("/filtered_pc", 100);
+    this->segmented_cp_pub  = this->create_publisher<sensor_msgs::msg::PointCloud2>("/segmented_pc", 100);
 
     /* Create subscriber */
     this->cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(this->input_topic, qos, 
@@ -52,6 +53,9 @@ void ControllerNode::loadParameters()
     declare_parameter("clusterMaxZ", 0.0); 
     declare_parameter("maxHeight", 0.0);
     declare_parameter("filterOnZ", false);
+    declare_parameter("segment", false);
+    declare_parameter("publishFilteredPc", false);
+    declare_parameter("publishSegmentedPc", false);
 
 
     get_parameter("input_topic", this->input_topic); 
@@ -67,27 +71,61 @@ void ControllerNode::loadParameters()
     get_parameter("clusterMaxZ", this->clusterMaxZ); 
     get_parameter("maxHeight", this->maxHeight); 
     get_parameter("filterOnZ", this->filterOnZ); 
+    get_parameter("segment", this->segmentFlag); 
+    get_parameter("publishFilteredPc", this->publishFilteredPc); 
+    get_parameter("publishSegmentedPc", this->publishSegmentedPc); 
+}
+
+void ControllerNode::publishPc(float* points, unsigned int size, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub){
+    sensor_msgs::msg::PointCloud2 pc;
+    pc.header.frame_id = this->frame_id;
+    pc->width = size;
+    pc->height = 1;
+    pc->points.resize(pc->width * pc->height);
+
+    for (std::size_t i = 0; i < pc->size(); ++i)
+    {
+        pc->points[i].x = points[i*4+0];
+        pc->points[i].y = points[i*4+1];
+        pc->points[i].z = points[i*4+2];
+    }
+    pub->publish(pc);
 }
 
 void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
 {
     cones->points = {};
-    // Create a PCL PointCloud object
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    float *cudapointer = nullptr;
+    unsigned int size = 0;
+    bool is_cuda_clustering = false;
 
-    // Convert from sensor_msgs::PointCloud2 to pcl::PointCloud
-    pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
+    unsigned int inputSize = sub_cloud->width * sub_cloud->height;
+    float *inputData = (float *)sub_cloud->points.data();
 
     if(this->filterOnZ){
-        pcl_cloud = this->filter->filterPoints(pcl_cloud);
-        sensor_msgs::msg::PointCloud2 filteredPc;
-        pcl::toROSMsg(*pcl_cloud, filteredPc);
-        filteredPc.header.frame_id = this->frame_id;
-        this->filtered_cp_pub->publish(filteredPc);
+        this->filter->filterPoints(inputData, inputSize, cudapointer, &size);
+        inputSize = size;
+        inputData = cudapointer;
+        is_cuda_clustering = true;
+
+        if(this->publishFilteredPc){
+            publishPc(cudapointer, size, filtered_cp_pub);
+        }
+    }
+
+    if(this->segmentFlag){
+        //segment(inputData, inputSize, cudapointer, &size);
+        inputSize = size;
+        inputData = cudapointer;
+        is_cuda_clustering = true;
+
+        if(this->publishSegmentedPc){
+            publishPc(is_cuda_clustering, cudapointer, size, segmented_cp_pub);
+        }
     }
 
     //RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
-    this->clustering->extractClusters(pcl_cloud, cones);
+    this->clustering->extractClusters(is_cuda_clustering, inputData, inputSize, cones);
     //RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
 
     cones->header.stamp = this->now();

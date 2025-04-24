@@ -62,11 +62,9 @@ class CudaFilter : public IFilter
 
         float *output = NULL;
         float *input = NULL;
-        unsigned int inputSize;
-        unsigned int outputSize = 0;
 
         unsigned int memoryAllocated = 0;
     public:
         CudaFilter();
-        pcl::PointCloud<pcl::PointXYZ>::Ptr filterPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSrc);
+        void filterPoints(float* input, unsigned int inputSize, float* output, unsigned int* outputSize);
 };
