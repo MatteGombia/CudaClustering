@@ -93,3 +93,33 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     cones->header.stamp = this->now();
     cones_array_pub->publish(*cones);
 }
+
+/* Nuova struttura !!! */
+
+/*
+void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
+{
+    cones->points = {};
+    
+    fromPcToFloat();
+
+    if(this->filterOnZ){
+        ... = this->filter->filterPoints();
+
+        if(debugPublishFilteredPc)
+            publishFilteredPc();
+    }
+    
+    if(this->segmentation){
+        ... = this->segmentation->segment();
+
+        if(debugPublishSegmentedPc)
+            publishSegmentedPc();
+    }
+
+    ... = this->clustering->extractClusters();
+
+    cones->header.stamp = this->now();
+    cones_array_pub->publish(*cones);
+}
+*/
