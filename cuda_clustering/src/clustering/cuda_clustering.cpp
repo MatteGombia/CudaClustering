@@ -36,8 +36,8 @@ void CudaClustering::getInfo(void)
 }
 
 void CudaClustering::reallocateMemory(unsigned int sizeEC){
-  stream = NULL;
-  cudaStreamCreate (&stream);
+  //stream = NULL;
+  //cudaStreamCreate (&stream);
 
   cudaFree(inputEC);
   cudaMallocManaged(&inputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
