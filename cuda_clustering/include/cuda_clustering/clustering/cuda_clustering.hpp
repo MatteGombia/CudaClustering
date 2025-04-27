@@ -4,6 +4,8 @@
 
 #include <Eigen/Dense>
 #include "cuda_runtime.h"
+#include <chrono>
+#include <rclcpp/rclcpp.hpp>
 
 #include "cuda_clustering/clustering/iclustering.hpp"
 

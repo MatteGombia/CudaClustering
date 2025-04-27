@@ -1,6 +1,4 @@
 #include "cuda_segmentation.hpp"
-#include <pcl/sample_consensus/ransac.h>          // Include per RANSAC CUDA
-#include <pcl/sample_consensus/sac_model_plane.h> // Include modello piano
 #include <cuda_runtime.h>                         // API CUDA runtime
 #include <vector>                                 // std::vector
 
@@ -67,8 +65,8 @@ void CudaSegmentation::segment(const float *points,
 
     // Crea istanza dell'implementazione CUDA RANSAC
     cudaSegmentation segImpl(
-        0,     // tipo modello sacmodel_plane = 0
-        0,     // metodo RANSAC = 0
+        SACMODEL_PLANE,     // tipo modello sacmodel_plane = 0
+        SacMethod::SAC_RANSAC,     // metodo RANSAC = 0
         stream // usa lo stream specificato
     );
     // Applica i parametri configurati
@@ -98,7 +96,7 @@ void CudaSegmentation::segment(const float *points,
         out_points[3 * i + 2] = points[3 * idx + 2];
     }
 
-    // Libera temporaneo devPoints
+    // libera memoria allocata
     cudaFree(devPoints);
     cudaFree(index);
     cudaFree(modelCoefficients);

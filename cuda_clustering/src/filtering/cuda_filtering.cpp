@@ -1,4 +1,5 @@
 #include "cuda_clustering/filtering/cuda_filtering.hpp"
+
 CudaFilter::CudaFilter()
 {
   FilterType_t type = PASSTHROUGH;
@@ -10,7 +11,7 @@ CudaFilter::CudaFilter()
   this->setP.limitsNegative = false;
 
   cudaStreamCreate ( &stream );
-}
+};
 
 void CudaFilter::reallocateMemory(unsigned int size)
 {
@@ -47,5 +48,5 @@ void CudaFilter::filterPoints(float* input, unsigned int inputSize, float* outpu
   
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough Time: %f ms.", time_span.count());
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough before filtering: %d", inputSize);
-  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough after filtering: %d", outputSize);
+  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough after filtering: %d", *outputSize);
 }

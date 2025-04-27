@@ -1,5 +1,9 @@
 #pragma once 
 #include "cuda_clustering/filtering/ifiltering.hpp"
+#include <ostream>
+#include <iostream>
+#include <chrono>
+#include <rclcpp/rclcpp.hpp>
 
 #include "cuda_runtime.h"
 
@@ -66,5 +70,6 @@ class CudaFilter : public IFilter
         unsigned int memoryAllocated = 0;
     public:
         CudaFilter();
+        void reallocateMemory(unsigned int size);
         void filterPoints(float* input, unsigned int inputSize, float* output, unsigned int* outputSize);
 };
