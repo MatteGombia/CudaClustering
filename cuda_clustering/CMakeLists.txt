@@ -42,6 +42,7 @@ add_executable(clustering_node
   src/main.cpp
   src/clustering/cuda_clustering.cpp
   src/filtering/cuda_filtering.cpp
+  src/segmentation/cuda_segmentation.cpp
 )
 target_include_directories(clustering_node PUBLIC include)
 
@@ -51,12 +52,17 @@ set_target_properties( libcudacluster PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURC
 add_library(libcudafilter SHARED IMPORTED)
 set_target_properties( libcudafilter PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libcudafilter.so )
 
+add_library(libcudasegmentation SHARED IMPORTED)
+set_target_properties( libcudasegmentation PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libcudasegmentation.so )
+
 link_directories(libcudacluster)
 link_directories(libcudafilter)
+link_directories(libcudasegmentation)
 
 add_library(cuda_clustering src/clustering/cuda_clustering.cpp)
 add_library(cluster_filtering src/clustering/cluster_filtering/dimension_filter.cpp)
 add_library(cuda_filtering src/filtering/cuda_filtering.cpp)
+add_library(cuda_segmentation src/segmentation/cuda_segmentation.cpp)
 
 ament_target_dependencies(cluster_filtering
   geometry_msgs
@@ -77,12 +83,20 @@ ament_target_dependencies(cuda_filtering
   rclcpp
   sensor_msgs
 )
+target_link_libraries(cuda_segmentation
+  libcudasegmentation
+)
+ament_target_dependencies(cuda_segmentation
+  rclcpp
+  sensor_msgs
+)
 
 target_link_libraries(${PROJECT_NAME}
   ${PCL_LIBRARIES}
   ${CUDA_LIBRARIES}
   cuda_clustering
   cuda_filtering
+  cuda_segmentation
 )
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp

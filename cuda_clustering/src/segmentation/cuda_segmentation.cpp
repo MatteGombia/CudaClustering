@@ -1,10 +1,9 @@
-#include "cuda_segmentation.hpp"
+#include "cuda_clustering/segmentation/cuda_segmentation.hpp"
 #include <cuda_runtime.h>                         // API CUDA runtime
 #include <vector>                                 // std::vector
 
 // Costruttore: inizializza parametri di default e puntatori a nullptr
 CudaSegmentation::CudaSegmentation()
-    : stream(0), memoryAllocated(0), index(nullptr), modelCoefficients(nullptr)
 {
     // Parametri RANSAC di default per estrazione piano
     segP.distanceThreshold = 0.01;    // soglia di distanza per considerare un inlier
@@ -21,7 +20,7 @@ CudaSegmentation::CudaSegmentation()
 void CudaSegmentation::segment(const float *points,
                                int num_points,
                                float *out_points,
-                               int *out_num_points)
+                               unsigned int *out_num_points)
 {
     // Calcola dimensione in byte dei punti (3 float per point x,y,z)
     const size_t hostPointsBytes = sizeof(float) * 3 * num_points;
@@ -87,7 +86,7 @@ void CudaSegmentation::segment(const float *points,
 
     // Scrive nel buffer di output solo i punti inlier
     *out_num_points = static_cast<int>(inliers.size());
-    for (int i = 0; i < *out_num_points; ++i)
+    for (unsigned int i = 0; i < *out_num_points; ++i)
     {
         int idx = inliers[i];
         // Copia x,y,z,intensity per ogni inlier
