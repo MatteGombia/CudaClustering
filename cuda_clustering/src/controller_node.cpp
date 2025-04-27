@@ -79,15 +79,15 @@ void ControllerNode::loadParameters()
 void ControllerNode::publishPc(float* points, unsigned int size, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub){
     sensor_msgs::msg::PointCloud2 pc;
     pc.header.frame_id = this->frame_id;
-    pc->width = size;
-    pc->height = 1;
-    pc->points.resize(pc->width * pc->height);
+    pc.width = size;
+    pc.height = 1;
+    pc.data.resize(pc.width * pc.height);
 
-    for (std::size_t i = 0; i < pc->size(); ++i)
+    for (std::size_t i = 0; i < pc.data.size(); ++i)
     {
-        pc->points[i].x = points[i*4+0];
-        pc->points[i].y = points[i*4+1];
-        pc->points[i].z = points[i*4+2];
+        pc.data[i] = points[i*4];
+        pc.data[i + 1] = points[i*4+1];
+        pc.data[i + 2] = points[i*4+2];
     }
     pub->publish(pc);
 }
@@ -98,9 +98,9 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     float *cudapointer = nullptr;
     unsigned int size = 0;
     bool is_cuda_clustering = false;
-
+    
     unsigned int inputSize = sub_cloud->width * sub_cloud->height;
-    float *inputData = (float *)sub_cloud->points.data();
+    float *inputData = (float *)sub_cloud->data.data();
 
     if(this->filterOnZ){
         this->filter->filterPoints(inputData, inputSize, cudapointer, &size);
@@ -109,18 +109,18 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
         is_cuda_clustering = true;
 
         if(this->publishFilteredPc){
-            publishPc(cudapointer, size, filtered_cp_pub);
+            this->publishPc(cudapointer, size, filtered_cp_pub);
         }
     }
 
     if(this->segmentFlag){
-        //segment(inputData, inputSize, cudapointer, &size);
+        segmentation->segment(inputData, inputSize, cudapointer, &size);
         inputSize = size;
         inputData = cudapointer;
         is_cuda_clustering = true;
 
         if(this->publishSegmentedPc){
-            publishPc(is_cuda_clustering, cudapointer, size, segmented_cp_pub);
+            publishPc(cudapointer, size, segmented_cp_pub);
         }
     }
 

@@ -82,5 +82,5 @@ public:
     void segment(const float *points,
                  int num_points,
                  float *out_points,
-                 int &out_num_points) override;
+                 unsigned int* out_num_points) override;
 };

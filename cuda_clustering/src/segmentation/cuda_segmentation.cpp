@@ -21,7 +21,7 @@ CudaSegmentation::CudaSegmentation()
 void CudaSegmentation::segment(const float *points,
                                int num_points,
                                float *out_points,
-                               int &out_num_points)
+                               int *out_num_points)
 {
     // Calcola dimensione in byte dei punti (3 float per point x,y,z)
     const size_t hostPointsBytes = sizeof(float) * 3 * num_points;
@@ -86,8 +86,8 @@ void CudaSegmentation::segment(const float *points,
     }
 
     // Scrive nel buffer di output solo i punti inlier
-    out_num_points = static_cast<int>(inliers.size());
-    for (int i = 0; i < out_num_points; ++i)
+    *out_num_points = static_cast<int>(inliers.size());
+    for (int i = 0; i < *out_num_points; ++i)
     {
         int idx = inliers[i];
         // Copia x,y,z,intensity per ogni inlier

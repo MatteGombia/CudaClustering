@@ -87,7 +87,7 @@ void CudaClustering::extractClusters(bool is_cuda_pointer, float* input, unsigne
   std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Memory Time: %f ms.", time_span.count());
 
-  cudaec.extract(inputEC, sizeEC, outputEC, indexEC);
+  cudaec.extract(inputEC, inputSize, outputEC, indexEC);
   cudaStreamSynchronize(stream);
 
   for (size_t i = 1; i <= indexEC[0]; i++)

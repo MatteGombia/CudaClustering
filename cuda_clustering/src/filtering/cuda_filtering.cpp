@@ -19,14 +19,14 @@ void CudaFilter::reallocateMemory(unsigned int size)
   //cudaStreamCreate (&stream);
 
   cudaFree(input);
-  cudaMallocManaged(&inputEC, sizeof(float) * 4 * size, cudaMemAttachHost);
-  cudaStreamAttachMemAsync (stream, inputEC);
+  cudaMallocManaged(&input, sizeof(float) * 4 * size, cudaMemAttachHost);
+  cudaStreamAttachMemAsync (stream, input);
 
   cudaFree(output);
-  cudaMallocManaged(&outputEC, sizeof(float) * 4 * size, cudaMemAttachHost);
-  cudaStreamAttachMemAsync (stream, outputEC);
+  cudaMallocManaged(&output, sizeof(float) * 4 * size, cudaMemAttachHost);
+  cudaStreamAttachMemAsync (stream, output);
 }
-void CudaFilter::filterPoints(float* input, unsigned int inputSize, float* output, unsigned int* outputSize)
+void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float* output, unsigned int* outputSize)
 {
   if(memoryAllocated < inputSize){
     reallocateMemory(inputSize);
