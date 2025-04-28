@@ -64,7 +64,7 @@ public:
                  int *index, float *modelCoefficients);
 
 private:
-    void *m_handle = NULL;
+
 };
 
 class CudaSegmentation : public Isegmentation

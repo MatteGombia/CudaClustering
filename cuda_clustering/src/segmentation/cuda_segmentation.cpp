@@ -65,7 +65,7 @@ void CudaSegmentation::segment(const float *points,
     // Crea istanza dell'implementazione CUDA RANSAC
     cudaSegmentation segImpl(
         SACMODEL_PLANE,     // tipo modello sacmodel_plane = 0
-        SacMethod::SAC_RANSAC,     // metodo RANSAC = 0
+        SAC_RANSAC,     // metodo RANSAC = 0
         stream // usa lo stream specificato
     );
     // Applica i parametri configurati
@@ -100,58 +100,3 @@ void CudaSegmentation::segment(const float *points,
     cudaFree(index);
     cudaFree(modelCoefficients);
 }
-
-/*
-CudaSegmentation::CudaSegmentation()
-{
-    segP.distanceThreshold = 0.01;
-    segP.maxIterations = 100;
-    segP.probability = 0.99;
-    segP.optimizeCoefficients = true;
-
-    modelCoefficients = NULL;
-    memoryAllocated = 0;
-}
-void CudaSegmentation::segment(const float *points, int num_points, float *out_points, int &out_num_points)
-{
-    cudaStreamCreate(&stream);
-
-    // index
-    //  index should >= nCount of maximum inputdata,
-    // index can be used for multi-inputs, be allocated and freed just at beginning and end
-    cudaMallocManaged(&index, sizeof(int) * num_points, cudaMemAttachHost);
-    cudaStreamAttachMemAsync(stream, index);
-    cudaStreamSynchronize(stream);
-    // modelCoefficients can be used for multi-inputs, be allocated and freed just at beginning and end
-    cudaMallocManaged(&modelCoefficients, sizeof(float) * 4, cudaMemAttachHost);
-    cudaStreamAttachMemAsync(stream, modelCoefficients);
-    cudaStreamSynchronize(stream);
-
-    // segmentation
-    cudaSegmentation cudaSeg(SACMODEL_PLANE, SAC_RANSAC, stream);
-    cudaSeg.set(setP);
-    cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * num_points, cudaMemcpyHostToDevice, stream);
-    cudaSeg.segment(input, num_points, index, modelCoefficients);
-
-    float *output = new float[num_points * 4];
-    std::vector<int> indexV;
-
-    for (int i = 0; i < num_points; i++)
-    {
-        if (index[i] == 1)
-            indexV.push_back(i);
-            output.push_back(input[i]);
-    }
-
-    std::cout << "CUDA modelCoefficients: " << modelCoefficients[0]
-              << " " << modelCoefficients[1]
-              << " " << modelCoefficients[2]
-              << " " << modelCoefficients[3]
-              << std::endl;
-
-
-    cudaFree(input);
-    cudaFree(index);
-    cudaFree(modelCoefficients);
-}
-*/
