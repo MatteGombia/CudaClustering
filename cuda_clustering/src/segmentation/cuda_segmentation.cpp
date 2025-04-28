@@ -1,5 +1,4 @@
 #include "cuda_clustering/segmentation/cuda_segmentation.hpp"
-#include <cuda_runtime.h>                         // API CUDA runtime
 #include <vector>                                 // std::vector
 
 // Costruttore: inizializza parametri di default e puntatori a nullptr
@@ -86,6 +85,14 @@ void CudaSegmentation::segment(const float *points,
 
     // Scrive nel buffer di output solo i punti inlier
     *out_num_points = static_cast<int>(inliers.size());
+    out_points = (float *)malloc(sizeof(float) * 3 * (*out_num_points));
+    
+    if (out_points == nullptr)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("cudaSegmentation"), "Failed to allocate memory for output points");
+        return;
+    }
+
     for (unsigned int i = 0; i < *out_num_points; ++i)
     {
         int idx = inliers[i];
