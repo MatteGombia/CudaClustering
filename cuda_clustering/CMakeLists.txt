@@ -9,7 +9,6 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(PCL REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -24,15 +23,6 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${Eigen_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
-include_directories(/opt/ros/humble/include/pcl_ros)
-include_directories(/opt/ros/humble/include/pcl_conversions)
-include_directories(/opt/ros/humble/include/message_filters)
-include_directories(/opt/ros/humble/include/pcl_msgs)   
-include_directories(/opt/ros/humble/include/tf2)   
-include_directories(/opt/ros/humble/include/tf2_ros)   
-include_directories(/opt/ros/humble/include/tf2_msgs)  
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 add_definitions(-std=c++17 -g -lboost_thread-mt)
 
 add_library(${PROJECT_NAME} src/controller_node.cpp)
@@ -92,7 +82,6 @@ ament_target_dependencies(cuda_segmentation
 )
 
 target_link_libraries(${PROJECT_NAME}
-  ${PCL_LIBRARIES}
   ${CUDA_LIBRARIES}
   cuda_clustering
   cuda_filtering

@@ -2,7 +2,6 @@
 
 #include <visualization_msgs/msg/marker_array.hpp>
 
-#include <Eigen/Dense>
 #include "cuda_runtime.h"
 #include <chrono>
 #include <rclcpp/rclcpp.hpp>
