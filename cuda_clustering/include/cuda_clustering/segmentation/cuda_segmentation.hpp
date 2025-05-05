@@ -4,35 +4,35 @@
 
 typedef enum
 {
-  SACMODEL_PLANE = 0,
-  SACMODEL_LINE,
-  SACMODEL_CIRCLE2D,
-  SACMODEL_CIRCLE3D,
-  SACMODEL_SPHERE,
-  SACMODEL_CYLINDER,
-  SACMODEL_CONE,
-  SACMODEL_TORUS,
-  SACMODEL_PARALLEL_LINE,
-  SACMODEL_PERPENDICULAR_PLANE,
-  SACMODEL_PARALLEL_LINES,
-  SACMODEL_NORMAL_PLANE,
-  SACMODEL_NORMAL_SPHERE,
-  SACMODEL_REGISTRATION,
-  SACMODEL_REGISTRATION_2D,
-  SACMODEL_PARALLEL_PLANE,
-  SACMODEL_NORMAL_PARALLEL_PLANE,
-  SACMODEL_STICK,
+    SACMODEL_PLANE = 0,
+    SACMODEL_LINE,
+    SACMODEL_CIRCLE2D,
+    SACMODEL_CIRCLE3D,
+    SACMODEL_SPHERE,
+    SACMODEL_CYLINDER,
+    SACMODEL_CONE,
+    SACMODEL_TORUS,
+    SACMODEL_PARALLEL_LINE,
+    SACMODEL_PERPENDICULAR_PLANE,
+    SACMODEL_PARALLEL_LINES,
+    SACMODEL_NORMAL_PLANE,
+    SACMODEL_NORMAL_SPHERE,
+    SACMODEL_REGISTRATION,
+    SACMODEL_REGISTRATION_2D,
+    SACMODEL_PARALLEL_PLANE,
+    SACMODEL_NORMAL_PARALLEL_PLANE,
+    SACMODEL_STICK,
 } SacModel;
 
 typedef enum
 {
-  SAC_RANSAC  = 0,
-  SAC_LMEDS   = 1,
-  SAC_MSAC    = 2,
-  SAC_RRANSAC = 3,
-  SAC_RMSAC   = 4,
-  SAC_MLESAC  = 5,
-  SAC_PROSAC  = 6,
+    SAC_RANSAC = 0,
+    SAC_LMEDS = 1,
+    SAC_MSAC = 2,
+    SAC_RRANSAC = 3,
+    SAC_RMSAC = 4,
+    SAC_MLESAC = 5,
+    SAC_PROSAC = 6,
 } SacMethod;
 
 typedef struct
@@ -64,23 +64,17 @@ public:
                  int *index, float *modelCoefficients);
 
 private:
-
 };
 
 class CudaSegmentation : public Isegmentation
 {
-    
-private:
-    segParam_t segP;
-    float *modelCoefficients = NULL;
-    unsigned int memoryAllocated = 0;
-    cudaStream_t stream = NULL;
-    int *index = NULL;
 
+private:
 public:
+    cudaStream_t stream = NULL;
     CudaSegmentation();
-    void segment(const float *points,
-                 int num_points,
-                 float *out_points,
-                 unsigned int* out_num_points) override;
+    void segment(const float *inputData,
+                 int nCount,
+                 float **out_points,
+                 unsigned int *out_num_points) override;
 };
