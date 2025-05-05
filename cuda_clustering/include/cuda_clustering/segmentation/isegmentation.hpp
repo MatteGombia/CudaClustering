@@ -13,8 +13,8 @@ public:
      * out_points: caller-allocated buffer, at least as big as input
      * out_num_points: actual number of points in segmentation result
      */
-    virtual void segment(const float *points,
-                         int num_points,
-                         float *out_points,
+    virtual void segment(const float *inputData,
+                         int nCount,
+                         float **out_points,
                          unsigned int* out_num_points) = 0;
 };
