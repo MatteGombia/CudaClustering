@@ -114,7 +114,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     }
 
     if(this->segmentFlag){
-        segmentation->segment(inputData, inputSize, cudapointer, &size);
+        segmentation->segment(inputData, inputSize, &cudapointer, &size);
         inputSize = size;
         inputData = cudapointer;
         is_cuda_clustering = true;
