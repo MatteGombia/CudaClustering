@@ -64,12 +64,11 @@ class CudaFilter : public IFilter
         FilterParam_t setP;
         cudaStream_t stream = NULL;
 
-        float *output = NULL;
         float *input = NULL;
 
         unsigned int memoryAllocated = 0;
     public:
         CudaFilter();
         void reallocateMemory(unsigned int size);
-        void filterPoints(float* input, unsigned int inputSize, float* output, unsigned int* outputSize);
+        void filterPoints(float* input, unsigned int inputSize, float** output, unsigned int* outputSize);
 };

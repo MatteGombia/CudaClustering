@@ -13,11 +13,22 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(CUDA  REQUIRED)
 find_package(visualization_msgs REQUIRED)
+
+find_package(PCL REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
 # Find include directories
+include_directories(${PCL_INCLUDE_DIRS})
+include_directories(/opt/ros/humble/include/pcl_ros)
+include_directories(/opt/ros/humble/include/pcl_conversions)
+include_directories(/opt/ros/humble/include/message_filters)
+include_directories(/opt/ros/humble/include/pcl_msgs)   
+include_directories(/opt/ros/humble/include/tf2)   
+include_directories(/opt/ros/humble/include/tf2_ros)   
+include_directories(/opt/ros/humble/include/tf2_msgs) 
+
 include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${Eigen_INCLUDE_DIRS})
@@ -79,6 +90,7 @@ ament_target_dependencies(cuda_segmentation
 )
 
 target_link_libraries(${PROJECT_NAME}
+  ${PCL_LIBRARIES}
   ${CUDA_LIBRARIES}
   cuda_clustering
   cuda_filtering

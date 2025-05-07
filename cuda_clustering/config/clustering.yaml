@@ -1,7 +1,7 @@
 #params from adaprive clustering 
 /clustering_node:
   ros__parameters:
-    input_topic: "/patchworkpp/nonground"
+    input_topic: /lidar_points #"/patchworkpp/nonground"
     frame_id: "hesai_lidar"
     minClusterSize : 5        # Minimum cluster size to filter out noise
     maxClusterSize : 200        # Maximum size for large objects
@@ -15,4 +15,7 @@
     clusterMaxZ: 0.4
     maxHeight: 1.0          #of the lowest point
 
-    filterOnZ: false
+    filterOnZ: true
+    segment: true
+    publishFilteredPc: false
+    publishSegmentedPc: true 
