@@ -103,12 +103,9 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     unsigned int size = 0;
     bool is_cuda_clustering = false;
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZI>);
-    RCLCPP_INFO(this->get_logger(), "-------------- PRIMA CONVERSIONE -----------");
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     // Convert from sensor_msgs::PointCloud2 to pcl::PointCloud
     pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
-    RCLCPP_INFO(this->get_logger(), "-------------- DOPO CONVERSIONE -----------");
-
     
     unsigned int inputSize = pcl_cloud->points.size();
     float *inputData = (float *)pcl_cloud->points.data();
@@ -117,6 +114,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
         this->filter->filterPoints(inputData, inputSize, &cudapointer, &size);
         inputSize = size;
         inputData = cudapointer;
+        //cudapointer = nullptr;
         is_cuda_clustering = true;
 
         if(this->publishFilteredPc){
@@ -127,9 +125,11 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     if(this->segmentFlag){
         RCLCPP_INFO(this->get_logger(), "-------------- PRIMA SEG -----------");
         segmentation->segment(inputData, inputSize, &cudapointer, &size);
+        RCLCPP_INFO(this->get_logger(), "-------------- DOPO SEG -----------");
         inputSize = size;
         inputData = cudapointer;
-        //is_cuda_clustering = true;
+        //cudapointer = nullptr;
+        is_cuda_clustering = true;
 
         if(this->publishSegmentedPc){
             publishPc(cudapointer, size, segmented_cp_pub);

@@ -110,6 +110,9 @@ void CudaClustering::extractClusters(bool is_cuda_pointer, float* input, unsigne
   time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t3 - t1);
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Total Time: %f ms.", time_span.count());
   /*end*/
+
+  if(is_cuda_pointer)
+    cudaFree(input);
 }
 CudaClustering::~CudaClustering(){
   cudaFree(inputEC);
