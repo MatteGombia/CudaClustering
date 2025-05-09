@@ -41,6 +41,17 @@ class cudaExtractCluster
     }                                                             \
 }
 
+struct clustering_parameters
+{
+    struct clustering
+    {
+        float voxelX, voxelY, voxelZ;
+        unsigned int countThreshold, minClusterSize, maxClusterSize;
+    } clustering;
+
+    cluster_filter filtering;
+};
+
 
 class CudaClustering : public IClustering
 {
@@ -60,7 +71,7 @@ class CudaClustering : public IClustering
     void reallocateMemory(unsigned int sizeEC, bool is_cuda_pointer);
 
   public:
-    CudaClustering(unsigned int minClusterSize, unsigned int maxClusterSize, float voxelX, float voxelY, float voxelZ, unsigned int countThreshold);
+    CudaClustering(clustering_parameters& param);
     void getInfo();
 
     void extractClusters(bool is_cuda_pointer, float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones);

@@ -8,5 +8,5 @@ class DimensionFilter : public IClusterFiltering
         bool isCone(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
     public:
         std::optional<geometry_msgs::msg::Point> analiseCluster(float* cluster, unsigned int points_num);
-        DimensionFilter();
+        DimensionFilter(cluster_filter& param);
 };

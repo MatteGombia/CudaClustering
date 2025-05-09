@@ -1,15 +1,15 @@
 #include "cuda_clustering/clustering/cuda_clustering.hpp"
 #include "cuda_clustering/clustering/cluster_filtering/dimension_filter.hpp"
 
-CudaClustering::CudaClustering(unsigned int minClusterSize, unsigned int maxClusterSize, float voxelX, float voxelY, float voxelZ, unsigned int countThreshold){
-  this->ecp.minClusterSize = minClusterSize;           // Minimum cluster size to filter out noise
-  this->ecp.maxClusterSize = maxClusterSize;        // Maximum size for large objects
-  this->ecp.voxelX = voxelX;                  // Down-sampling resolution in X (meters)
-  this->ecp.voxelY = voxelY;                  // Down-sampling resolution in Y (meters)
-  this->ecp.voxelZ = voxelZ;                 // Down-sampling resolution in Z (meters)
-  this->ecp.countThreshold = countThreshold;           // Minimum points per voxel
+CudaClustering::CudaClustering(clustering_parameters& param){
+  this->ecp.minClusterSize = param.clustering.minClusterSize;           // Minimum cluster size to filter out noise
+  this->ecp.maxClusterSize = param.clustering.maxClusterSize;        // Maximum size for large objects
+  this->ecp.voxelX = param.clustering.voxelX;                  // Down-sampling resolution in X (meters)
+  this->ecp.voxelY = param.clustering.voxelY;                  // Down-sampling resolution in Y (meters)
+  this->ecp.voxelZ = param.clustering.voxelZ;                 // Down-sampling resolution in Z (meters)
+  this->ecp.countThreshold = param.clustering.countThreshold;           // Minimum points per voxel
 
-  filter = new DimensionFilter();
+  filter = new DimensionFilter(param.filtering);
 }
 
 void CudaClustering::getInfo(void)

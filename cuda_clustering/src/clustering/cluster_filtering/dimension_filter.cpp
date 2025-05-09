@@ -1,12 +1,12 @@
 #include "cuda_clustering/clustering/cluster_filtering/dimension_filter.hpp"
-DimensionFilter::DimensionFilter(){
-    clusterMaxX = 0.2;
-    clusterMaxY = 0.2;
-    clusterMaxZ = 0.4;
-    clusterMinX = 0.05;
-    clusterMinY = 0.05;
-    clusterMinZ = 0.1;
-    maxHeight = 0.3;
+DimensionFilter::DimensionFilter(cluster_filter& param){
+    clusterMaxX = param.clusterMaxX;
+    clusterMaxY = param.clusterMaxY;
+    clusterMaxZ = param.clusterMaxZ;
+    clusterMinX = param.clusterMinX;
+    clusterMinY = param.clusterMinY;
+    clusterMinZ = param.clusterMinZ;
+    maxHeight = param.maxHeight;
 }
 
 std::optional<geometry_msgs::msg::Point> DimensionFilter::analiseCluster(float* outputPoints, unsigned int points_num){

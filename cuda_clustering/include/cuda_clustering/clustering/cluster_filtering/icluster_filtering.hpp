@@ -1,6 +1,10 @@
 #pragma once
 #include <geometry_msgs/msg/point.hpp>
 #include <optional>
+struct cluster_filter
+{
+    float clusterMaxX, clusterMaxY, clusterMaxZ, clusterMinX, clusterMinY, clusterMinZ, maxHeight;
+};
 
 class IClusterFiltering
 {

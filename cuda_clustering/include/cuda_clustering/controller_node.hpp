@@ -20,9 +20,8 @@ class ControllerNode : public rclcpp::Node
     private:
         std::shared_ptr<visualization_msgs::msg::Marker> cones{new visualization_msgs::msg::Marker()};
         std::string input_topic, frame_id;
-        float voxelX, voxelY, voxelZ, clusterMaxX, clusterMaxY, clusterMaxZ, maxHeight;
-        unsigned int countThreshold, minClusterSize, maxClusterSize;
         bool filterOnZ, segmentFlag, publishFilteredPc, publishSegmentedPc;
+        clustering_parameters param;
 
         IFilter *filter;
         IClustering *clustering;

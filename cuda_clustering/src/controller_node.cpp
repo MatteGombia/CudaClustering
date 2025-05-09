@@ -5,7 +5,7 @@ ControllerNode::ControllerNode() : Node("clustering_node"){
 
     this->filter = new CudaFilter();
     this->segmentation = new CudaSegmentation();
-    this->clustering = new CudaClustering(this->minClusterSize, this->maxClusterSize, this->voxelX, this->voxelY, this->voxelZ, this->countThreshold);
+    this->clustering = new CudaClustering(param);
 
     this->clustering->getInfo();
 
@@ -61,16 +61,16 @@ void ControllerNode::loadParameters()
 
     get_parameter("input_topic", this->input_topic); 
     get_parameter("frame_id", this->frame_id); 
-    get_parameter("minClusterSize", this->minClusterSize); 
-    get_parameter("maxClusterSize", this->maxClusterSize); 
-    get_parameter("voxelX", this->voxelX); 
-    get_parameter("voxelY", this->voxelY); 
-    get_parameter("voxelZ", this->voxelZ); 
-    get_parameter("countThreshold", this->countThreshold); 
-    get_parameter("clusterMaxX", this->clusterMaxX); 
-    get_parameter("clusterMaxY", this->clusterMaxY); 
-    get_parameter("clusterMaxZ", this->clusterMaxZ); 
-    get_parameter("maxHeight", this->maxHeight); 
+    get_parameter("minClusterSize", this->param.clustering.minClusterSize); 
+    get_parameter("maxClusterSize", this->param.clustering.maxClusterSize); 
+    get_parameter("voxelX", this->param.clustering.voxelX); 
+    get_parameter("voxelY", this->param.clustering.voxelY); 
+    get_parameter("voxelZ", this->param.clustering.voxelZ); 
+    get_parameter("countThreshold", this->param.clustering.countThreshold); 
+    get_parameter("clusterMaxX", this->param.filtering.clusterMaxX); 
+    get_parameter("clusterMaxY", this->param.filtering.clusterMaxY); 
+    get_parameter("clusterMaxZ", this->param.filtering.clusterMaxZ); 
+    get_parameter("maxHeight", this->param.filtering.maxHeight); 
     get_parameter("filterOnZ", this->filterOnZ); 
     get_parameter("segment", this->segmentFlag); 
     get_parameter("publishFilteredPc", this->publishFilteredPc); 
