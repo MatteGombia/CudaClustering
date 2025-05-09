@@ -21,17 +21,15 @@ void CudaFilter::reallocateMemory(unsigned int size)
   cudaFree(input);
   cudaMallocManaged(&input, sizeof(float) * 4 * size, cudaMemAttachHost);
   cudaStreamAttachMemAsync (stream, input);
-
-  cudaFree(output);
-  cudaMallocManaged(&output, sizeof(float) * 4 * size, cudaMemAttachHost);
-  cudaStreamAttachMemAsync (stream, output);
 }
-void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float* output, unsigned int* outputSize)
+void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float** output, unsigned int* outputSize)
 {
   if(memoryAllocated < inputSize){
     reallocateMemory(inputSize);
     memoryAllocated = inputSize;
   }
+  cudaMallocManaged(output, sizeof(float) * 4 * inputSize, cudaMemAttachHost);
+  cudaStreamAttachMemAsync (stream, *output);
 
   cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
 
@@ -42,7 +40,7 @@ void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float* o
   cudaStreamSynchronize(stream);
   cudaDeviceSynchronize();
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-  filterTest.filter(output, outputSize, input, inputSize);
+  filterTest.filter(*output, outputSize, input, inputSize);
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
   
