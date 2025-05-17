@@ -13,6 +13,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(CUDA  REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
 
 find_package(PCL REQUIRED)
 # uncomment the following section in order to fill in
@@ -33,6 +34,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${Eigen_INCLUDE_DIRS})
 include_directories(${CUDA_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_definitions(-std=c++17 -g -lboost_thread-mt)
 
 add_library(${PROJECT_NAME} src/controller_node.cpp)
@@ -100,6 +102,8 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   sensor_msgs
   visualization_msgs
+  pcl_conversions
+  PCL
 )
 
 target_link_libraries(${PROJECT_NAME}_node 

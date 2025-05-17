@@ -71,8 +71,14 @@ class CudaSegmentation : public Isegmentation
 
 private:
 public:
+    unsigned int memory_allocated = 0;
+    float *input = nullptr;
+    int *index = nullptr;
+    float *modelCoefficients = nullptr;
     cudaStream_t stream = NULL;
     CudaSegmentation();
+    void reallocateMemory(unsigned int size);
+    void freeResources();
     void segment(const float *inputData,
                  int nCount,
                  float **out_points,
