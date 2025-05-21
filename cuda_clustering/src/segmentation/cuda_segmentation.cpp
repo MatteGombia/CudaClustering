@@ -3,12 +3,12 @@
 
 CudaSegmentation::CudaSegmentation() {}
 
-void CudaSegmentation::reallocateMemory(unsigned int size)
-{
-  cudaFree(input);
-  cudaMallocManaged(&input, sizeof(float) * 4 * size, cudaMemAttachHost);
-  cudaStreamAttachMemAsync(stream, input);
-}
+// void CudaSegmentation::reallocateMemory(unsigned int size)
+// {
+//   cudaFree(input);
+//   cudaMallocManaged(&input, sizeof(float) * 4 * size, cudaMemAttachHost);
+//   cudaStreamAttachMemAsync(stream, input);
+// }
 
 void CudaSegmentation::freeResources()
 {
@@ -32,12 +32,11 @@ void CudaSegmentation::segment(
   // Inizio misurazione del tempo
   auto t1 = std::chrono::steady_clock::now();
 
-  size_t inputBytes = sizeof(float) * 4 * nCount;
-  if (inputBytes > memory_allocated)
-  {
-    CudaSegmentation::reallocateMemory(inputBytes);
-    memory_allocated = inputBytes;
-  }
+  // if (inputBytes > memory_allocated)
+  // {
+  //   CudaSegmentation::reallocateMemory(inputBytes);
+  //   memory_allocated = inputBytes;
+  // }
 
   RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "Avvio segmentazione di %d punti", nCount);
 
@@ -51,6 +50,8 @@ void CudaSegmentation::segment(
   }
 
   // 2) Associazione del buffer di input
+  size_t inputBytes = sizeof(float) * 4 * nCount;
+  cudaMallocManaged(&input, inputBytes, cudaMemAttachHost);
   cudaMemcpyAsync(input, inputData, inputBytes, cudaMemcpyHostToDevice, stream);
 
   // 3) Allocazione e inizializzazione del buffer degli indici
@@ -110,7 +111,7 @@ void CudaSegmentation::segment(
   // 7) Allocazione e popolazione dei punti in output
 
   size_t outBytes = sizeof(float) * 4 * (*out_num_points);
-  
+
   err = cudaMallocManaged(out_points, outBytes, cudaMemAttachGlobal);
   if (err != cudaSuccess)
   {
@@ -120,7 +121,7 @@ void CudaSegmentation::segment(
     throw std::runtime_error("cudaMallocManaged(out_points) non riuscita: " + std::string(cudaGetErrorString(err)));
   }
 
-  for(size_t i = 0; i < inliers.size(); ++i)
+  for (size_t i = 0; i < inliers.size(); ++i)
   {
     int idx = inliers[i];
     if (idx < 0 || idx >= nCount) // controllo di validità dell'indice

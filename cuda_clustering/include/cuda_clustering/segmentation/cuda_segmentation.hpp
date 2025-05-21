@@ -71,7 +71,7 @@ class CudaSegmentation : public Isegmentation
 
 private:
 public:
-    unsigned int memory_allocated = 0;
+    // unsigned int memory_allocated = 0;
     float *input = nullptr;
     int *index = nullptr;
     float *modelCoefficients = nullptr;
