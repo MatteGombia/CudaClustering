@@ -1,13 +1,13 @@
 #include "cuda_clustering/filtering/cuda_filtering.hpp"
 
-CudaFilter::CudaFilter()
+CudaFilter::CudaFilter(float upFilterLimits, float downFilterLimits)
 {
   FilterType_t type = PASSTHROUGH;
 
   this->setP.type = type;
   this->setP.dim = 2;
-  this->setP.upFilterLimits = 0.7;
-  this->setP.downFilterLimits = 0.0;
+  this->setP.upFilterLimits = upFilterLimits;
+  this->setP.downFilterLimits = downFilterLimits;
   this->setP.limitsNegative = false;
 
   cudaStreamCreate ( &stream );

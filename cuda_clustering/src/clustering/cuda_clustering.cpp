@@ -40,14 +40,14 @@ void CudaClustering::reallocateMemory(unsigned int sizeEC){
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "REALLOC");
   cudaFree(outputEC);
   cudaStreamSynchronize(stream);
-  cudaMallocManaged(&outputEC, sizeof(float) * 4 * sizeEC * 2, cudaMemAttachHost);
+  cudaMallocManaged(&outputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
   cudaStreamSynchronize(stream);
   cudaStreamAttachMemAsync (stream, outputEC);
   cudaStreamSynchronize(stream);
 
   cudaFree(indexEC);
   cudaStreamSynchronize(stream);
-  cudaMallocManaged(&indexEC, sizeof(unsigned int) * 4 * sizeEC * 2, cudaMemAttachHost);
+  cudaMallocManaged(&indexEC, sizeof(unsigned int) * (sizeEC + 1), cudaMemAttachHost);
   cudaStreamSynchronize(stream);
   cudaStreamAttachMemAsync (stream, indexEC);
   cudaStreamSynchronize(stream);
@@ -59,7 +59,7 @@ void CudaClustering::extractClusters(float* input, unsigned int inputSize, std::
 
   if(memoryAllocated < inputSize){
     reallocateMemory(inputSize);
-    memoryAllocated = inputSize * 2;
+    memoryAllocated = inputSize;
   }
 
   cudaMemcpyAsync(outputEC, input, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
@@ -101,7 +101,7 @@ void CudaClustering::extractClusters(float* input, unsigned int inputSize, std::
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Total Time: %f ms.", time_span.count());
   /*end*/
 
-  cudaFree(input);
+  // cudaFree(input);
 }
 CudaClustering::~CudaClustering(){
   cudaFree(inputEC);

@@ -21,6 +21,7 @@ class ControllerNode : public rclcpp::Node
         std::shared_ptr<visualization_msgs::msg::Marker> cones{new visualization_msgs::msg::Marker()};
         std::string input_topic, frame_id;
         bool filterOnZ, segmentFlag, publishFilteredPc, publishSegmentedPc;
+        float downFilterLimits, upFilterLimits;
         clustering_parameters param;
         cudaStream_t stream = NULL;
         unsigned int memoryAllocated = 0;

@@ -13,7 +13,13 @@
     clusterMaxX: 0.3
     clusterMaxY: 0.3
     clusterMaxZ: 0.4
+    clusterMinX: 0.0
+    clusterMinY: 0.0
+    clusterMinZ: 0.0
     maxHeight: 1.0          #of the lowest point
+
+    downFilterLimits: 0.0
+    upFilterLimits: 0.5
 
     filterOnZ: true
     segment: false
