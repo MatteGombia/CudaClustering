@@ -15,8 +15,10 @@ ControllerNode::ControllerNode() : Node("clustering_node")
     auto qos = rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data);
 
     this->cones_array_pub = this->create_publisher<visualization_msgs::msg::Marker>("/perception/newclusters", 100);
-    this->filtered_cp_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/filtered_pc", 100);
-    this->segmented_cp_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/segmented_pc", 100);
+    if(this->filterOnZ && this->publishFilteredPc)
+        this->filtered_cp_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/filtered_pc", 100);
+    if(this->segmentFlag && this->publishSegmentedPc)
+        this->segmented_cp_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/segmented_pc", 100);
 
     /* Create subscriber */
     this->cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(this->input_topic, qos,
@@ -38,6 +40,8 @@ ControllerNode::ControllerNode() : Node("clustering_node")
     cones->pose.orientation.y = 0.0;
     cones->pose.orientation.z = 0.0;
     cones->pose.orientation.w = 1.0;
+
+    cudaStreamCreate ( &stream );
 }
 
 void ControllerNode::loadParameters()
@@ -103,7 +107,6 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     cones->points = {};
     float *cudapointer = nullptr;
     unsigned int size = 0;
-    bool is_cuda_pointer = false;
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     // Convert from sensor_msgs::PointCloud2 to pcl::PointCloud
@@ -116,15 +119,20 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "conversione in: %.3f ms", duration.count());
 
     unsigned int inputSize = pcl_cloud->points.size();
-    float *inputData = (float *)pcl_cloud->points.data();
+    float *inputData = NULL;
+    
+    cudaMallocManaged(&inputData, sizeof(float) * 4 * inputSize, cudaMemAttachHost);
+    cudaStreamAttachMemAsync (stream, inputData);
+    cudaMemcpyAsync(inputData, pcl_cloud->points.data(), sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
 
     if (this->filterOnZ)
     {
         this->filter->filterPoints(inputData, inputSize, &cudapointer, &size);
         inputSize = size;
+        cudaFree(inputData);
         inputData = cudapointer;
         // cudapointer = nullptr;
-        is_cuda_pointer = true;
 
         if (this->publishFilteredPc)
         {
@@ -140,7 +148,6 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
         inputSize = size;
         inputData = cudapointer;
         // cudapointer = nullptr;
-        is_cuda_pointer = true;
 
         if (this->publishSegmentedPc)
         {
@@ -149,7 +156,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     }
 
     // RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
-    this->clustering->extractClusters(is_cuda_pointer, inputData, inputSize, cones);
+    this->clustering->extractClusters(inputData, inputSize, cones);
     // RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
 
     cones->header.stamp = this->now();

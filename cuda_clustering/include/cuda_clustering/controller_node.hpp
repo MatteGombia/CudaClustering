@@ -22,6 +22,9 @@ class ControllerNode : public rclcpp::Node
         std::string input_topic, frame_id;
         bool filterOnZ, segmentFlag, publishFilteredPc, publishSegmentedPc;
         clustering_parameters param;
+        cudaStream_t stream = NULL;
+        unsigned int memoryAllocated = 0;
+        float *inputData = NULL;
 
         IFilter *filter;
         IClustering *clustering;
