@@ -19,3 +19,7 @@
     segment: true
     publishFilteredPc: false
     publishSegmentedPc: true 
+    distanceThreshold: 0.5
+    maxIterations: 50
+    probability: 0.99
+    optimizeCoefficients: true

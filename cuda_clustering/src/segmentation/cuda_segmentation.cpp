@@ -1,7 +1,13 @@
 #include "cuda_clustering/segmentation/cuda_segmentation.hpp"
 #include <vector>
 
-CudaSegmentation::CudaSegmentation() {}
+CudaSegmentation::CudaSegmentation(segParam_t& params)
+{
+  segP.distanceThreshold = params.distanceThreshold;
+  segP.maxIterations = params.maxIterations;
+  segP.probability = params.probability;
+  segP.optimizeCoefficients = params.optimizeCoefficients;
+}
 
 // void CudaSegmentation::reallocateMemory(unsigned int size)
 // {
@@ -81,11 +87,6 @@ void CudaSegmentation::segment(
 
   cudaSegmentation impl(SACMODEL_PLANE, SAC_RANSAC, stream);
 
-  segParam_t segP;
-  segP.distanceThreshold = 0.01f;
-  segP.maxIterations = 50;
-  segP.probability = 0.99;
-  segP.optimizeCoefficients = true;
   impl.set(segP);
 
   impl.segment(input, nCount, index, modelCoefficients);

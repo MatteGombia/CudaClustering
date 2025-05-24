@@ -22,6 +22,7 @@ class ControllerNode : public rclcpp::Node
         std::string input_topic, frame_id;
         bool filterOnZ, segmentFlag, publishFilteredPc, publishSegmentedPc;
         clustering_parameters param;
+        segParam_t segP;
 
         IFilter *filter;
         IClustering *clustering;

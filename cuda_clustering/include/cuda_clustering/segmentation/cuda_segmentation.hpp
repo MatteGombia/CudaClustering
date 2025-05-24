@@ -76,8 +76,9 @@ public:
     int *index = nullptr;
     float *modelCoefficients = nullptr;
     cudaStream_t stream = NULL;
-    CudaSegmentation();
-    void reallocateMemory(unsigned int size);
+    segParam_t segP;
+    CudaSegmentation(segParam_t& params);
+    // void reallocateMemory(unsigned int size);
     void freeResources();
     void segment(const float *inputData,
                  int nCount,

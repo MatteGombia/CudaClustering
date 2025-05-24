@@ -6,7 +6,7 @@ ControllerNode::ControllerNode() : Node("clustering_node")
     this->loadParameters();
 
     this->filter = new CudaFilter();
-    this->segmentation = new CudaSegmentation();
+    this->segmentation = new CudaSegmentation(segP);
     this->clustering = new CudaClustering(param);
 
     this->clustering->getInfo();
@@ -59,6 +59,10 @@ void ControllerNode::loadParameters()
     declare_parameter("segment", false);
     declare_parameter("publishFilteredPc", false);
     declare_parameter("publishSegmentedPc", false);
+    declare_parameter("distance_threshold", 0.05);
+    declare_parameter("max_iterations", 50);
+    declare_parameter("probability", 0.99);
+    declare_parameter("optimize_coefficients", true);
 
     get_parameter("input_topic", this->input_topic);
     get_parameter("frame_id", this->frame_id);
@@ -76,6 +80,10 @@ void ControllerNode::loadParameters()
     get_parameter("segment", this->segmentFlag);
     get_parameter("publishFilteredPc", this->publishFilteredPc);
     get_parameter("publishSegmentedPc", this->publishSegmentedPc);
+    get_parameter("distance_threshold", this->segP.distanceThreshold);
+    get_parameter("max_iterations", this->segP.maxIterations);
+    get_parameter("probability", this->segP.probability);
+    get_parameter("optimize_coefficients", this->segP.optimizeCoefficients);
 }
 
 void ControllerNode::publishPc(float *points, unsigned int size, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub)
