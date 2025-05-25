@@ -3,23 +3,30 @@
   ros__parameters:
     input_topic: /lidar_points #"/patchworkpp/nonground"
     frame_id: "hesai_lidar"
-    minClusterSize : 5        # Minimum cluster size to filter out noise
+    minClusterSize : 1        # Minimum cluster size to filter out noise
     maxClusterSize : 200        # Maximum size for large objects
-    voxelX: 0.5               #// Down-sampling resolution in X (meters)
-    voxelY: 0.5                  #// Down-sampling resolution in Y (meters)
-    voxelZ: 0.3                #// Down-sampling resolution in Z (meters)
-    countThreshold: 5         #  // Minimum points per voxel
+    voxelX: 0.2               #// Down-sampling resolution in X (meters)
+    voxelY: 0.2                  #// Down-sampling resolution in Y (meters)
+    voxelZ: 0.2                #// Down-sampling resolution in Z (meters)
+    countThreshold: 0         #  // Minimum points per voxel
 
     clusterMaxX: 0.3
     clusterMaxY: 0.3
     clusterMaxZ: 0.4
+    clusterMinX: 0.0
+    clusterMinY: 0.0
+    clusterMinZ: 0.0
     maxHeight: 1.0          #of the lowest point
 
+    downFilterLimits: 0.0
+    upFilterLimits: 0.5
+
     filterOnZ: true
-    segment: true
+    segment: false
     publishFilteredPc: false
     publishSegmentedPc: true 
     distanceThreshold: 0.5
     maxIterations: 50
     probability: 0.99
     optimizeCoefficients: true
+

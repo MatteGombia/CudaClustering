@@ -10,6 +10,7 @@ CudaClustering::CudaClustering(clustering_parameters& param){
   this->ecp.countThreshold = param.clustering.countThreshold;           // Minimum points per voxel
 
   filter = new DimensionFilter(param.filtering);
+  cudaStreamCreate ( &stream );
 }
 
 void CudaClustering::getInfo(void)
@@ -35,59 +36,47 @@ void CudaClustering::getInfo(void)
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"),"\n");
 }
 
-void CudaClustering::reallocateMemory(unsigned int sizeEC, bool is_cuda_pointer){
-  //stream = NULL;
-  //cudaStreamCreate (&stream);
-
-  if(!is_cuda_pointer){
-    cudaFree(inputEC);
-    cudaMallocManaged(&inputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
-    cudaStreamAttachMemAsync (stream, inputEC);
-  }
-
-  //free(outputEC);
+void CudaClustering::reallocateMemory(unsigned int sizeEC){
+  RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "REALLOC");
   cudaFree(outputEC);
+  cudaStreamSynchronize(stream);
   cudaMallocManaged(&outputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
+  cudaStreamSynchronize(stream);
   cudaStreamAttachMemAsync (stream, outputEC);
+  cudaStreamSynchronize(stream);
 
-  //free(indexEC);
   cudaFree(indexEC);
-  cudaMallocManaged(&indexEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
+  cudaStreamSynchronize(stream);
+  cudaMallocManaged(&indexEC, sizeof(unsigned int) * (sizeEC + 1), cudaMemAttachHost);
+  cudaStreamSynchronize(stream);
   cudaStreamAttachMemAsync (stream, indexEC);
-
+  cudaStreamSynchronize(stream);
 }
 
-void CudaClustering::extractClusters(bool is_cuda_pointer, float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones)
+void CudaClustering::extractClusters(float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones)
 {
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 
   if(memoryAllocated < inputSize){
-    reallocateMemory(inputSize, is_cuda_pointer);
+    reallocateMemory(inputSize);
     memoryAllocated = inputSize;
   }
 
-  if(is_cuda_pointer){
-    inputEC = input;
-  }
-  else{
-    cudaMemcpyAsync(inputEC, input, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
-  }
-  //cudaStreamSynchronize(stream);
-
   cudaMemcpyAsync(outputEC, input, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
-  //cudaStreamSynchronize(stream);
+  cudaStreamSynchronize(stream);
   
   cudaMemsetAsync(indexEC, 0, sizeof(float) * 4 * inputSize, stream);
   cudaStreamSynchronize(stream);
-
+  
   cudaExtractCluster cudaec(stream);
   cudaec.set(this->ecp);
+  cudaStreamSynchronize(stream);
 
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Memory Time: %f ms.", time_span.count());
 
-  cudaec.extract(inputEC, inputSize, outputEC, indexEC);
+  cudaec.extract(input, inputSize, outputEC, indexEC);
   cudaStreamSynchronize(stream);
 
   for (size_t i = 1; i <= indexEC[0]; i++)
@@ -100,6 +89,7 @@ void CudaClustering::extractClusters(bool is_cuda_pointer, float* input, unsigne
       }
     }
     std::optional<geometry_msgs::msg::Point> pnt_opt = filter->analiseCluster(&outputEC[outoff*4], indexEC[i]);
+    //RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "Possible cluster of %d points: detected as %d.", indexEC[i], pnt_opt.has_value());
     if(pnt_opt.has_value()){
       cones->points.push_back(pnt_opt.value());
     }
@@ -111,8 +101,7 @@ void CudaClustering::extractClusters(bool is_cuda_pointer, float* input, unsigne
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA Total Time: %f ms.", time_span.count());
   /*end*/
 
-  if(is_cuda_pointer)
-    cudaFree(input);
+  // cudaFree(input);
 }
 CudaClustering::~CudaClustering(){
   cudaFree(inputEC);

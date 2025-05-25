@@ -68,12 +68,12 @@ class CudaClustering : public IClustering
     extractClusterParam_t ecp;
     cudaStream_t stream = NULL;
 
-    void reallocateMemory(unsigned int sizeEC, bool is_cuda_pointer);
+    void reallocateMemory(unsigned int sizeEC);
 
   public:
     CudaClustering(clustering_parameters& param);
     void getInfo();
 
-    void extractClusters(bool is_cuda_pointer, float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones);
+    void extractClusters(float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones);
     ~CudaClustering();
 };

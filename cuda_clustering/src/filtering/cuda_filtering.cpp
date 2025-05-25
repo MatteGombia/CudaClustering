@@ -1,13 +1,13 @@
 #include "cuda_clustering/filtering/cuda_filtering.hpp"
 
-CudaFilter::CudaFilter()
+CudaFilter::CudaFilter(float upFilterLimits, float downFilterLimits)
 {
   FilterType_t type = PASSTHROUGH;
 
   this->setP.type = type;
   this->setP.dim = 2;
-  this->setP.upFilterLimits = 1.0;
-  this->setP.downFilterLimits = 0.0;
+  this->setP.upFilterLimits = upFilterLimits;
+  this->setP.downFilterLimits = downFilterLimits;
   this->setP.limitsNegative = false;
 
   cudaStreamCreate ( &stream );
@@ -24,14 +24,15 @@ void CudaFilter::reallocateMemory(unsigned int size)
 }
 void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float** output, unsigned int* outputSize)
 {
-  if(memoryAllocated < inputSize){
-    reallocateMemory(inputSize);
-    memoryAllocated = inputSize;
-  }
+  // if(memoryAllocated < inputSize){
+  //   reallocateMemory(inputSize);
+  //   memoryAllocated = inputSize;
+  // }
   cudaMallocManaged(output, sizeof(float) * 4 * inputSize, cudaMemAttachHost);
   cudaStreamAttachMemAsync (stream, *output);
 
-  cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
+  input = inputData;
+  //cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
 
   cudaFilter filterTest(stream);
   std::cout << "\n------------checking CUDA PassThrough ---------------- "<< std::endl;
@@ -40,7 +41,7 @@ void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float** 
   cudaStreamSynchronize(stream);
   cudaDeviceSynchronize();
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-  filterTest.filter(*output, outputSize, input, inputSize);
+  filterTest.filter(*output, outputSize, inputData, inputSize);
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
   

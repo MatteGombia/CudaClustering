@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <string.h>
 
 #include "cuda_clustering/clustering/cuda_clustering.hpp"
@@ -14,22 +14,26 @@
 
 #include <pcl_conversions/pcl_conversions.h>
 
-
 class ControllerNode : public rclcpp::Node
 {
-    private:
+private:
         std::shared_ptr<visualization_msgs::msg::Marker> cones{new visualization_msgs::msg::Marker()};
         std::string input_topic, frame_id;
         bool filterOnZ, segmentFlag, publishFilteredPc, publishSegmentedPc;
+        float downFilterLimits, upFilterLimits;
         clustering_parameters param;
         segParam_t segP;
+
+        cudaStream_t stream = NULL;
+        unsigned int memoryAllocated = 0;
+        float *inputData = NULL;
 
         IFilter *filter;
         IClustering *clustering;
         Isegmentation *segmentation;
 
         /* Publisher */
-        //rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
+        // rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
         /* Subscriber */
         rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
@@ -45,8 +49,8 @@ class ControllerNode : public rclcpp::Node
         void scanCallback(const sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud);
 
         /* Publish PointCloud */
-        void publishPc(float* points, unsigned int size, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub);
+        void publishPc(float *points, unsigned int size, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub);
 
-    public:
+public:
         ControllerNode();
 };
