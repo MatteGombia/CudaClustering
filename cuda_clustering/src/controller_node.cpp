@@ -6,7 +6,6 @@ ControllerNode::ControllerNode() : Node("clustering_node")
     this->loadParameters();
 
 
-    this->filter = new CudaFilter();
     this->segmentation = new CudaSegmentation(segP);
     this->filter = new CudaFilter(upFilterLimits, downFilterLimits);
 
