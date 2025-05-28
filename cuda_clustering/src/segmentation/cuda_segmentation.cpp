@@ -1,5 +1,4 @@
 #include "cuda_clustering/segmentation/cuda_segmentation.hpp"
-#include <vector>
 
 CudaSegmentation::CudaSegmentation(segParam_t& params)
 {
@@ -8,13 +7,6 @@ CudaSegmentation::CudaSegmentation(segParam_t& params)
   segP.probability = params.probability;
   segP.optimizeCoefficients = params.optimizeCoefficients;
 }
-
-// void CudaSegmentation::reallocateMemory(unsigned int size)
-// {
-//   cudaFree(input);
-//   cudaMallocManaged(&input, sizeof(float) * 4 * size, cudaMemAttachHost);
-//   cudaStreamAttachMemAsync(stream, input);
-// }
 
 void CudaSegmentation::freeResources()
 {
@@ -37,12 +29,6 @@ void CudaSegmentation::segment(
 {
   // Inizio misurazione del tempo
   auto t1 = std::chrono::steady_clock::now();
-
-  // if (inputBytes > memory_allocated)
-  // {
-  //   CudaSegmentation::reallocateMemory(inputBytes);
-  //   memory_allocated = inputBytes;
-  // }
 
   RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "Avvio segmentazione di %d punti", nCount);
 
@@ -88,15 +74,9 @@ void CudaSegmentation::segment(
   cudaSegmentation impl(SACMODEL_PLANE, SAC_RANSAC, stream);
 
   impl.set(segP);
-
   impl.segment(input, nCount, index, modelCoefficients);
+  
   cudaDeviceSynchronize();
-  auto kernelErr = cudaGetLastError();
-
-  if (kernelErr != cudaSuccess)
-  {
-    throw std::runtime_error("Kernel CUDA non riuscito: " + std::string(cudaGetErrorString(kernelErr)));
-  }
 
   // 6) Raccolta degli inlier
 

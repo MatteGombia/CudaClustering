@@ -3,6 +3,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <cuda_runtime.h>
 #include <cstddef>
+#include <vector>
 
 class Isegmentation
 {
