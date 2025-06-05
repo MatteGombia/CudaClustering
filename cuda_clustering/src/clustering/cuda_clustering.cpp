@@ -38,22 +38,15 @@ void CudaClustering::getInfo(void)
 
 void CudaClustering::reallocateMemory(unsigned int sizeEC){
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "REALLOC");
-  cudaFree(outputEC);
-  cudaStreamSynchronize(stream);
-  cudaMallocManaged(&outputEC, sizeof(float) * 4 * sizeEC, cudaMemAttachHost);
-  cudaStreamSynchronize(stream);
-  cudaStreamAttachMemAsync (stream, outputEC);
-  cudaStreamSynchronize(stream);
-
   cudaFree(indexEC);
   cudaStreamSynchronize(stream);
-  cudaMallocManaged(&indexEC, sizeof(unsigned int) * (sizeEC + 1), cudaMemAttachHost);
+  cudaMallocManaged(&indexEC, sizeof(unsigned int) * 4 * (sizeEC), cudaMemAttachHost);
   cudaStreamSynchronize(stream);
   cudaStreamAttachMemAsync (stream, indexEC);
   cudaStreamSynchronize(stream);
 }
 
-void CudaClustering::extractClusters(float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones)
+void CudaClustering::extractClusters(float* input, unsigned int inputSize, float* outputEC, std::shared_ptr<visualization_msgs::msg::Marker> cones)
 {
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 
@@ -63,9 +56,8 @@ void CudaClustering::extractClusters(float* input, unsigned int inputSize, std::
   }
 
   cudaMemcpyAsync(outputEC, input, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
-  cudaStreamSynchronize(stream);
   
-  cudaMemsetAsync(indexEC, 0, sizeof(float) * 4 * inputSize, stream);
+  cudaMemsetAsync(indexEC, 0, sizeof(unsigned int) * 4 * (inputSize), stream);
   cudaStreamSynchronize(stream);
   
   cudaExtractCluster cudaec(stream);
@@ -104,7 +96,7 @@ void CudaClustering::extractClusters(float* input, unsigned int inputSize, std::
   // cudaFree(input);
 }
 CudaClustering::~CudaClustering(){
-  cudaFree(inputEC);
-  cudaFree(outputEC);
+  // cudaFree(inputEC);
+  // cudaFree(outputEC);
   cudaFree(indexEC);
 }

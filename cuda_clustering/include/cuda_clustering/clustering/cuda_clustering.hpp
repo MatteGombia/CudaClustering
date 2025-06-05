@@ -59,9 +59,9 @@ class CudaClustering : public IClustering
     float clusterMaxX = 0.5, clusterMaxY = 0.5, clusterMaxZ = 0.5, maxHeight = 1.0 ;
     unsigned int memoryAllocated = 0;
 
-    float *inputEC = NULL;
+    // float *inputEC = NULL;
 
-    float *outputEC = NULL;
+    // float *outputEC = NULL;
 
     unsigned int *indexEC = NULL;
     
@@ -74,6 +74,6 @@ class CudaClustering : public IClustering
     CudaClustering(clustering_parameters& param);
     void getInfo();
 
-    void extractClusters(float* input, unsigned int inputSize, std::shared_ptr<visualization_msgs::msg::Marker> cones);
+    void extractClusters(float* input, unsigned int inputSize, float* outputEC, std::shared_ptr<visualization_msgs::msg::Marker> cones);
     ~CudaClustering();
 };

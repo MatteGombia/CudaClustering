@@ -132,10 +132,8 @@ void ControllerNode::publishPc(float *points, unsigned int size, rclcpp::Publish
 void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
 {
     cones->points = {};
-    float *cudapointer = nullptr;
     unsigned int size = 0;
-
-    float* partialOutput = NULL;
+    float* tmp = NULL;
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
     // Convert from sensor_msgs::PointCloud2 to pcl::PointCloud
@@ -150,56 +148,53 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     unsigned int inputSize = pcl_cloud->points.size();
     
     if(memoryAllocated < inputSize){
+        cudaFree(inputData);
         cudaMallocManaged(&inputData, sizeof(float) * 4 * inputSize, cudaMemAttachHost);
         cudaStreamAttachMemAsync (stream, inputData);
+        cudaFree(partialOutput);
+        cudaMallocManaged(&partialOutput, sizeof(float) * 4 * inputSize, cudaMemAttachHost);
+        cudaStreamAttachMemAsync (stream, partialOutput);
         memoryAllocated = inputSize;
     }
 
     cudaMemcpyAsync(inputData, pcl_cloud->points.data(), sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
-    partialOutput = inputData;
-
     if (this->filterOnZ)
     {
-        this->filter->filterPoints(inputData, inputSize, &cudapointer, &size);
+        this->filter->filterPoints(inputData, inputSize, &partialOutput, &size);
         inputSize = size;
-        // cudaFree(inputData);
-        
-        partialOutput = cudapointer;
-        // cudapointer = nullptr;
 
         if (this->publishFilteredPc)
         {
-            this->publishPc(cudapointer, size, filtered_cp_pub);
+            this->publishPc(partialOutput, size, filtered_cp_pub);
         }
+
+        tmp = partialOutput;
+        partialOutput = inputData;
+        inputData = partialOutput;
     }
 
     if (this->segmentFlag)
     {
         RCLCPP_INFO(this->get_logger(), "-------------- PRIMA SEG -----------");
-        segmentation->segment(partialOutput, inputSize, &cudapointer, &size);
+        segmentation->segment(inputData, inputSize, &partialOutput, &size);
         RCLCPP_INFO(this->get_logger(), "-------------- DOPO SEG -----------");
         inputSize = size;
 
-        if(partialOutput != inputData)
-            cudaFree(partialOutput);
-            
-        partialOutput = cudapointer;
-        // cudapointer = nullptr;
-
         if (this->publishSegmentedPc)
         {
-            publishPc(cudapointer, size, segmented_cp_pub);
+            publishPc(partialOutput, size, segmented_cp_pub);
         }
+
+        tmp = partialOutput;
+        partialOutput = inputData;
+        inputData = partialOutput;
     }
 
     // RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
-    this->clustering->extractClusters(partialOutput, inputSize, cones);
+    this->clustering->extractClusters(inputData, inputSize, partialOutput, cones);
     // RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
-
-    if(partialOutput != inputData)
-        cudaFree(partialOutput);
 
     cones->header.stamp = this->now();
     cones_array_pub->publish(*cones);

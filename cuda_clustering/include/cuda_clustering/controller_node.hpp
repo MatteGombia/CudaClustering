@@ -27,6 +27,8 @@ private:
         cudaStream_t stream = NULL;
         unsigned int memoryAllocated = 0;
         float *inputData = NULL;
+        float *partialOutput = NULL;
+
 
         IFilter *filter;
         IClustering *clustering;
