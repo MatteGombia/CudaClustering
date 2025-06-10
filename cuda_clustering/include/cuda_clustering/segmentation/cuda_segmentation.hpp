@@ -77,6 +77,7 @@ public:
     float *modelCoefficients = nullptr;
     cudaStream_t stream = NULL;
     segParam_t segP;
+    bool skip = false;
     CudaSegmentation(segParam_t& params);
     // void reallocateMemory(unsigned int size);
     void freeResources();

@@ -66,7 +66,7 @@ class CudaFilter : public IFilter
 
         float *input = NULL;
 
-        unsigned int memoryAllocated = 0;
+        unsigned int inputAllocated = 0;
     public:
         CudaFilter(float upFilterLimits, float downFilterLimits);
         void reallocateMemory(unsigned int size);

@@ -10,41 +10,46 @@ CudaFilter::CudaFilter(float upFilterLimits, float downFilterLimits)
   this->setP.downFilterLimits = downFilterLimits;
   this->setP.limitsNegative = false;
 
-  cudaStreamCreate ( &stream );
+  cudaStreamCreate(&stream);
 };
 
 void CudaFilter::reallocateMemory(unsigned int size)
 {
-  //stream = NULL;
-  //cudaStreamCreate (&stream);
+  // stream = NULL;
+  // cudaStreamCreate (&stream);
 
   cudaFree(input);
   cudaMallocManaged(&input, sizeof(float) * 4 * size, cudaMemAttachHost);
-  cudaStreamAttachMemAsync (stream, input);
+  cudaStreamAttachMemAsync(stream, input);
 }
-void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float** output, unsigned int* outputSize)
+void CudaFilter::filterPoints(float *inputData, unsigned int inputSize, float **output, unsigned int *outputSize)
 {
-  // if(memoryAllocated < inputSize){
-  //   reallocateMemory(inputSize);
-  //   memoryAllocated = inputSize;
-  // }
-  cudaMallocManaged(output, sizeof(float) * 4 * inputSize, cudaMemAttachHost);
-  cudaStreamAttachMemAsync (stream, *output);
+  if (inputAllocated < inputSize)
+  {
+    reallocateMemory(inputSize);
+    inputAllocated = inputSize;
+  }
 
-  input = inputData;
-  //cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
+  if (*output)
+    cudaFree(*output);
+  cudaMallocManaged(output, sizeof(float) * 4 * inputSize);
+  // azzeramento preventivo
+  cudaMemsetAsync(*output, 0, sizeof(float) * 4 * inputSize, stream);
+
+  cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * inputSize, cudaMemcpyHostToDevice, stream);
+  cudaStreamSynchronize(stream);
 
   cudaFilter filterTest(stream);
-  std::cout << "\n------------checking CUDA PassThrough ---------------- "<< std::endl;
+  std::cout << "\n------------checking CUDA PassThrough ---------------- " << std::endl;
 
   filterTest.set(this->setP);
-  cudaStreamSynchronize(stream);
-  cudaDeviceSynchronize();
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-  filterTest.filter(*output, outputSize, inputData, inputSize);
+  filterTest.filter(*output, outputSize, input, inputSize);
+  cudaStreamSynchronize(stream);
+
   std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(t2 - t1);
-  
+
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough Time: %f ms.", time_span.count());
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough before filtering: %d", inputSize);
   RCLCPP_INFO(rclcpp::get_logger("clustering_node"), "CUDA PassThrough after filtering: %d", *outputSize);
