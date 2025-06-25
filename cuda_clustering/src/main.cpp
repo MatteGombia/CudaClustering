@@ -3,7 +3,7 @@
 
 void handleSignal(int signal) {
     if (signal == SIGINT) {
-        std::cout << "Received SIGINT. Killing clustering_plane_finder_cpu process.\n";
+        std::cout << "Received SIGINT. Killing clustering process.\n";
         rclcpp::shutdown();
     }
 }

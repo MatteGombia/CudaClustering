@@ -77,10 +77,11 @@ public:
     float *modelCoefficients = nullptr;
     cudaStream_t stream = NULL;
     segParam_t segP;
+    bool skip = false;
     CudaSegmentation(segParam_t& params);
     // void reallocateMemory(unsigned int size);
     void freeResources();
-    void segment(const float *inputData,
+    void segment(float *inputData,
                  int nCount,
                  float **out_points,
                  unsigned int *out_num_points) override;
