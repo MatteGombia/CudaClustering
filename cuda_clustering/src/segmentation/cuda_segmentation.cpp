@@ -10,7 +10,6 @@ CudaSegmentation::CudaSegmentation(segParam_t &params)
 
 void CudaSegmentation::freeResources()
 {
-  cudaFree(input);
   cudaFree(index);
   cudaFree(modelCoefficients);
   cudaStreamDestroy(stream);
@@ -36,61 +35,36 @@ void CudaSegmentation::segment(
 
   cudaStreamCreate(&stream);
 
-  // 2) Associazione del buffer di input
-  // cudaMallocManaged(&input, sizeof(float) * 4 * nCount, cudaMemAttachHost);
-  // cudaError_t err = cudaMemcpyAsync(input, inputData, sizeof(float) * 4 * nCount, cudaMemcpyHostToDevice, stream);
-  // if (err != cudaSuccess)
-  // {
-  //   throw std::runtime_error("cudaMallocManaged(input) non riuscita");
-  // }
+  // 2) Allocazione e inizializzazione del buffer degli indici
 
-  // 3) Allocazione e inizializzazione del buffer degli indici
-
-  cudaError_t err = cudaMallocManaged(&index, sizeof(int) * nCount, cudaMemAttachHost);
-  RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "cudaMallocManaged(index): %s, bytes=%zu", cudaGetErrorString(err), sizeof(int) * nCount);
-  if (err != cudaSuccess)
-  {
-    CudaSegmentation::freeResources();
-    throw std::runtime_error("cudaMallocManaged(index) non riuscita");
-  }
+  cudaMallocManaged(&index, sizeof(int) * nCount, cudaMemAttachHost);
   cudaStreamAttachMemAsync(stream, index);
 
-  // 4) Allocazione dei coefficienti del modello
+  // 3) Allocazione dei coefficienti del modello
 
-  err = cudaMallocManaged(&modelCoefficients, sizeof(float) * 4, cudaMemAttachHost);
-  RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "cudaMallocManaged(coeffs): %s", cudaGetErrorString(err));
-  if (err != cudaSuccess)
-  {
-    CudaSegmentation::freeResources();
-    throw std::runtime_error("cudaMallocManaged(modelCoefficients) non riuscita: " + std::string(cudaGetErrorString(err)));
-  }
+  cudaMallocManaged(&modelCoefficients, sizeof(float) * 4, cudaMemAttachHost);
   cudaStreamAttachMemAsync(stream, modelCoefficients);
   cudaMemcpyAsync(modelCoefficients, 0, 4 * sizeof(float), cudaMemcpyHostToDevice, stream); // Inizializza i coefficienti a zero
-  std::cout << "coefficienti prima seg: coefficiente[3] = " << modelCoefficients[3] << " coefficiente [2] = " << modelCoefficients[2] << " coefficiente[1] = " << modelCoefficients[1] << std::endl;
 
-
-  // 5) Configurazione ed esecuzione del RANSAC su GPU
+  // 4) Configurazione ed esecuzione del RANSAC su GPU
 
   cudaSegmentation impl(SACMODEL_PLANE, SAC_RANSAC, stream);
 
   impl.set(segP);
-  std::cout << "prima seg" << std::endl;
   impl.segment(inputData, nCount, index, modelCoefficients);
-  std::cout << "dopo seg" << std::endl;
+
   cudaDeviceSynchronize();
 
-    std::cout << "coefficienti dopo seg: coefficiente[3] = " << modelCoefficients[3] << " coefficiente [2] = " << modelCoefficients[2] << " coefficiente[1] = " << modelCoefficients[1] << std::endl;
-
-
+  // controllo coefficienti
   if (std::isnan(modelCoefficients[0]) || std::abs(modelCoefficients[3]) > 20)
   {
     std::cout << "Segmentation non valida: coefficiente[3] = " << modelCoefficients[3] << " coefficiente [2] = " << modelCoefficients[2] << " coefficiente[1] = " << modelCoefficients[1] << std::endl;
     skip = true; // Segmentation non valida, salto parte finale
   }
-  std::cout << "PASSATO CONTROLLO COEFF" << std::endl;
+
   if (!skip)
   {
-    // 6) Raccolta degli inlier
+    // 5) Raccolta degli inlier
 
     std::vector<int> inliers;
     inliers.reserve(nCount);
@@ -101,22 +75,7 @@ void CudaSegmentation::segment(
     }
     *out_num_points = static_cast<unsigned int>(inliers.size());
 
-    std::cout << "OUTPOINTS = " << *out_num_points << std::endl;
-
-    // 7) Allocazione e popolazione dei punti in output
-
-    size_t outBytes = sizeof(float) * 4 * (*out_num_points);
-
-    // err = cudaMallocManaged(out_points, outBytes, cudaMemAttachGlobal);
-    // if (err != cudaSuccess)
-    // {
-    //   *out_num_points = 0;
-    //   *out_points = nullptr;
-    //   CudaSegmentation::freeResources();
-    //   throw std::runtime_error("cudaMallocManaged(out_points) non riuscita: " + std::string(cudaGetErrorString(err)));
-    // }
-
-    std::cout << "PASSATO OUT_POINTS" << std::endl;
+    // 6) Allocazione e popolazione dei punti in output
 
     for (size_t i = 0; i < inliers.size(); ++i)
     {
@@ -133,16 +92,14 @@ void CudaSegmentation::segment(
     }
     cudaDeviceSynchronize();
 
-    std::cout << "FINE" << std::endl;
-
     // Fine misurazione del tempo
     auto t2 = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t2 - t1);
     RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "Segmentazione completata in %.3f ms", duration.count());
 
     // Log dei coefficienti del modello
-    RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "Coefficienti modello: [%.4f, %.4f, %.4f, %.4f]",
-                modelCoefficients[0], modelCoefficients[1], modelCoefficients[2], modelCoefficients[3]);
+    // RCLCPP_INFO(rclcpp::get_logger("CudaSegmentation"), "Coefficienti modello: [%.4f, %.4f, %.4f, %.4f]",
+    //             modelCoefficients[0], modelCoefficients[1], modelCoefficients[2], modelCoefficients[3]);
   }
   // Pulizia delle risorse
   CudaSegmentation::freeResources();
