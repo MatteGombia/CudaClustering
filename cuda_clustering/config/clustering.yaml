@@ -13,13 +13,13 @@
     countThreshold: 10          #  // Minimum points per voxel
 
     #filter for clusters
-    clusterMaxX: 100.4
-    clusterMaxY: 100.4
-    clusterMaxZ: 100.4
+    clusterMaxX: 0.4
+    clusterMaxY: 0.4
+    clusterMaxZ: 0.4
     clusterMinX: -0.1
     clusterMinY: -0.1
-    clusterMinZ: -0.1
-    maxHeight: 1.0          #of the lowest point
+    clusterMinZ: 0.1
+    maxHeight: 0.4          #of the lowest point
 
     #filter on Z
     downFilterLimits: -0.5
@@ -32,7 +32,7 @@
     optimizeCoefficients: false
 
     #options
-    filterOnZ: true
+    filterOnZ: false
     segment: true
     publishFilteredPc: true
     publishSegmentedPc: true 

@@ -96,7 +96,7 @@ void CudaSegmentation::segment(
     inliers.reserve(nCount);
     for (int i = 0; i < nCount; ++i)
     {
-      if (index[i] == 1)
+      if (index[i] == -1)
         inliers.push_back(i);
     }
     *out_num_points = static_cast<unsigned int>(inliers.size());

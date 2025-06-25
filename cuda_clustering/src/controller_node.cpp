@@ -168,7 +168,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
 
         tmp = partialOutput;
         partialOutput = inputData;
-        inputData = partialOutput;
+        inputData = tmp;
     }
 
     if (this->segmentFlag)
@@ -188,7 +188,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
 
         tmp = partialOutput;
         partialOutput = inputData;
-        inputData = partialOutput;
+        inputData = tmp;
     }
 
     // RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
