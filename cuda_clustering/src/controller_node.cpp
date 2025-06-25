@@ -73,10 +73,10 @@ void ControllerNode::loadParameters()
     declare_parameter("segment", false);
     declare_parameter("publishFilteredPc", false);
     declare_parameter("publishSegmentedPc", false);
-    declare_parameter("distance_threshold", 0.05);
-    declare_parameter("max_iterations", 50);
+    declare_parameter("distanceThreshold", 0.05);
+    declare_parameter("maxIterations", 50);
     declare_parameter("probability", 0.99);
-    declare_parameter("optimize_coefficients", true);
+    declare_parameter("optimizeCoefficients", true);
 
 
     get_parameter("input_topic", this->input_topic);
@@ -103,10 +103,10 @@ void ControllerNode::loadParameters()
     get_parameter("segment", this->segmentFlag);
     get_parameter("publishFilteredPc", this->publishFilteredPc);
     get_parameter("publishSegmentedPc", this->publishSegmentedPc);
-    get_parameter("distance_threshold", this->segP.distanceThreshold);
-    get_parameter("max_iterations", this->segP.maxIterations);
+    get_parameter("distanceThreshold", this->segP.distanceThreshold);
+    get_parameter("maxIterations", this->segP.maxIterations);
     get_parameter("probability", this->segP.probability);
-    get_parameter("optimize_coefficients", this->segP.optimizeCoefficients);
+    get_parameter("optimizeCoefficients", this->segP.optimizeCoefficients);
 }
 
 void ControllerNode::publishPc(float *points, unsigned int size, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub)
@@ -118,12 +118,8 @@ void ControllerNode::publishPc(float *points, unsigned int size, rclcpp::Publish
     pcl_cloud->height = 1;
     pcl_cloud->points.resize(size);
 
-    for (std::size_t i = 0; i < size; ++i)
-    {
-        pcl_cloud->points[i].x = points[i * 4];
-        pcl_cloud->points[i].y = points[i * 4 + 1];
-        pcl_cloud->points[i].z = points[i * 4 + 2];
-    }
+    memcpy(pcl_cloud->points.data(), points, size * 4 * sizeof(float));
+
     pcl::toROSMsg(*pcl_cloud, pc);
     pc.header.frame_id = this->frame_id;
     pub->publish(pc);
@@ -139,7 +135,7 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     // Convert from sensor_msgs::PointCloud2 to pcl::PointCloud
     auto t1 = std::chrono::steady_clock::now();
 
-    pcl_df::fromROSMsg(*sub_cloud, *pcl_cloud);
+    pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
 
     auto t2 = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t2 - t1);
@@ -184,7 +180,10 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
 
         if (this->publishSegmentedPc)
         {
-            publishPc(partialOutput, size, segmented_cp_pub);
+            if(size != 0){
+                std::cout << "size = " << size << std::endl;
+                publishPc(partialOutput, size, segmented_cp_pub);
+            }
         }
 
         tmp = partialOutput;
@@ -197,35 +196,6 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     // RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
 
     cones->header.stamp = this->now();
-    cones_array_pub->publish(*cones);
+    if(cones->points.size() != 0)
+        cones_array_pub->publish(*cones);
 }
-
-/* Nuova struttura !!! */
-
-/*
-void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
-{
-    cones->points = {};
-
-    fromPcToFloat();
-
-    if(this->filterOnZ){
-        ... = this->filter->filterPoints();
-
-        if(debugPublishFilteredPc)
-            publishFilteredPc();
-    }
-
-    if(this->segmentation){
-        ... = this->segmentation->segment();
-
-        if(debugPublishSegmentedPc)
-            publishSegmentedPc();
-    }
-
-    ... = this->clustering->extractClusters();
-
-    cones->header.stamp = this->now();
-    cones_array_pub->publish(*cones);
-}
-*/
