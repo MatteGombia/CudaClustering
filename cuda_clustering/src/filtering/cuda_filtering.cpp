@@ -17,7 +17,7 @@ void CudaFilter::filterPoints(float* inputData, unsigned int inputSize, float** 
 {
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   cudaFilter filterTest(stream);
-  std::cout << "\n------------checking CUDA PassThrough ---------------- "<< std::endl;
+  std::cout << "\n------------ CUDA PassThrough ---------------- "<< std::endl;
 
   filterTest.set(this->setP);
   cudaStreamSynchronize(stream);

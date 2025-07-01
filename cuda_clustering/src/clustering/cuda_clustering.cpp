@@ -48,6 +48,7 @@ void CudaClustering::reallocateMemory(unsigned int sizeEC){
 
 void CudaClustering::extractClusters(float* input, unsigned int inputSize, float* outputEC, std::shared_ptr<visualization_msgs::msg::Marker> cones)
 {
+  std::cout << "\n------------ CUDA Clustering ---------------- "<< std::endl;
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 
   if(memoryAllocated < inputSize){

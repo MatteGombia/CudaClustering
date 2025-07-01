@@ -78,9 +78,11 @@ public:
     cudaStream_t stream = NULL;
     segParam_t segP;
     bool skip = false;
+    int mall_size = 0;
     CudaSegmentation(segParam_t& params);
     // void reallocateMemory(unsigned int size);
     void freeResources();
+    void realloc(unsigned int size);
     void segment(float *inputData,
                  int nCount,
                  float **out_points,

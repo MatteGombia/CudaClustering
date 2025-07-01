@@ -127,6 +127,7 @@ void ControllerNode::publishPc(float *points, unsigned int size, rclcpp::Publish
 
 void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_cloud)
 {
+    std::chrono::steady_clock::time_point tstart = std::chrono::steady_clock::now();
     cones->points = {};
     unsigned int size = 0;
     float* tmp = NULL;
@@ -135,7 +136,9 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
     // Convert from sensor_msgs::PointCloud2 to pcl::PointCloud
     auto t1 = std::chrono::steady_clock::now();
 
-    pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
+    //pcl::fromROSMsg(*sub_cloud, *pcl_cloud);
+    // pcl::moveFromROSMsg(*sub_cloud, *pcl_cloud);
+    pcl_df::fromROSMsg(*sub_cloud, *pcl_cloud);
 
     auto t2 = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(t2 - t1);
@@ -173,15 +176,12 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
 
     if (this->segmentFlag)
     {
-        RCLCPP_INFO(this->get_logger(), "-------------- PRIMA SEG -----------");
         segmentation->segment(inputData, inputSize, &partialOutput, &size);
-        RCLCPP_INFO(this->get_logger(), "-------------- DOPO SEG -----------");
         inputSize = size;
 
         if (this->publishSegmentedPc)
         {
             if(size != 0){
-                std::cout << "size = " << size << std::endl;
                 publishPc(partialOutput, size, segmented_cp_pub);
             }
         }
@@ -191,11 +191,16 @@ void ControllerNode::scanCallback(sensor_msgs::msg::PointCloud2::SharedPtr sub_c
         inputData = tmp;
     }
 
-    // RCLCPP_INFO(this->get_logger(), "-------------- CUDA lib -----------");
     this->clustering->extractClusters(inputData, inputSize, partialOutput, cones);
     // RCLCPP_INFO(this->get_logger(), "Marker: %ld data points.", cones->points.size());
+    std::chrono::steady_clock::time_point tend = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::ratio<1, 1000>> time_span = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1000>>>(tend - tstart);
+    RCLCPP_INFO(rclcpp::get_logger("clustering_node"), ">>>> TOTAL TIME: %f ms.", time_span.count());
+    std::cout << "\n------------------------------------ "<< std::endl;
+
 
     cones->header.stamp = this->now();
     if(cones->points.size() != 0)
         cones_array_pub->publish(*cones);
+    
 }
